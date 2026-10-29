@@ -1,0 +1,3443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Isabella Handbury</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=general-sans@1&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --header-h: 84px;
+    }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: "General Sans", system-ui, sans-serif;
+      color: #ffffff;
+      background-color: #1a0f0c;
+      background-image: url("images/background-web.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      overflow: hidden;
+    }
+
+    .site-title {
+      position: absolute;
+      top: 24px;
+      left: 4px;   /* matches the portfolio titles' left padding */
+      z-index: 2;
+      margin: 0;
+      font-size: clamp(1.4rem, 2.6vw, 2.2rem);
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Top-right navigation: a white burger that opens the three cream buttons,
+       kept small so it stays clear of the rolodex cards */
+    .site-nav {
+      position: absolute;
+      top: 24px;
+      right: 40px;
+      z-index: 4;   /* over the phone card's See More */
+      font-size: clamp(1.4rem, 2.6vw, 2.2rem);   /* same scale as the site title */
+      font-weight: 500;
+    }
+
+    .burger {
+      display: flex;
+      align-items: center;
+      height: 1.35em;   /* roughly the title's line height, so the two sit level */
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      font-size: inherit;
+    }
+
+    .burger svg {
+      display: block;
+      width: 1.15em;
+      height: auto;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+    }
+
+    .burger:focus-visible {
+      outline: 2px solid #ffffff;
+      outline-offset: 4px;
+    }
+
+    /* The menu replaces the burger, with the first button's top-right corner on the burger icon's.
+       The icon is centred in the burger, (1.35em - its height) / 2 from the top, converted
+       from the nav's ems into the menu's smaller ones */
+    .nav-menu {
+      position: absolute;
+      top: calc((1.35em - 1.15em * 436 / 625) / 2 / 0.65);
+      right: 0;
+      display: none;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.4em;
+      font-size: 0.65em;
+    }
+
+    .site-nav.open .nav-menu {
+      display: flex;
+    }
+
+    .site-nav.open .burger {
+      visibility: hidden;
+    }
+
+    .site-nav a {
+      width: 7.2em;
+      padding: 0.2em 0;
+      text-align: center;
+      color: #000000;
+      background: #f3ead0;
+      border: 0.16em solid #000000;
+      border-radius: 0.18em;
+      text-decoration: none;
+      line-height: 1.2;
+    }
+
+    .site-nav a:hover,
+    .site-nav a:focus-visible {
+      background: #460708;
+      color: #ffffff;
+      outline: none;
+    }
+
+    /* 3D rolodex sits behind the portfolio list */
+    #rolodex {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Tightly stacked titles, anchored to the bottom of the page */
+    .portfolios {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 40px;
+      z-index: 2;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      transition: opacity 0.3s;
+    }
+
+    /* Titles step aside while a card is flown out to fill the screen */
+    body.card-open .portfolios,
+    body.cv-anim .portfolios,
+    body.news-anim .portfolios {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* CV page: the card that flies up to fill the screen becomes a flat page in the card's
+       on-screen colour, with only the title and burger left on it, now in black */
+    .cv-page {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      background: #efd8c7;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s, visibility 0s 0.4s;
+    }
+
+    body.cv-open .cv-page {
+      opacity: 1;
+      visibility: visible;
+      transition: none;
+    }
+
+    /* The CV's own name heads the page, so the site title hides */
+    body.cv-open .site-title {
+      visibility: hidden;
+    }
+
+    body.cv-open .site-nav { z-index: 5; }
+
+    body.cv-open .burger rect { fill: #000000; }
+
+    body.cv-open .burger svg { filter: none; }
+
+    /* The CV fills the page from the top, under the burger, and fades in once the page has taken
+       over (body.cv-ready) */
+    .cv-scroll {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    body.cv-ready .cv-scroll {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.5s;
+    }
+
+    /* The CV itself, rebuilt from images/cv/Isabella_Handbury_CV.pdf as the page. Everything is in ems of
+       the body text, which is a fixed share of the CV's width (as on the A4 sheet), so the spacing scales
+       with it */
+    .cv-sheet {
+      container-type: inline-size;
+    }
+
+    .cv-doc {
+      --cv-pad: clamp(16px, 2.5vw, 40px);
+      position: relative;
+      padding: 0.4em var(--cv-pad) 3em;   /* name sits high, leaving room above Email */
+      font-family: "Hind Vadodara", system-ui, sans-serif;
+      font-size: min(2.58cqw, 24px);
+      font-weight: 400;
+      line-height: 1;
+      color: #000000;
+    }
+
+    .cv-doc :where(p, ul) {
+      margin: 0;
+    }
+
+    .cv-doc :where(a) {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .cv-name {
+      font-family: "General Sans", system-ui, sans-serif;
+      font-size: 4.7em;
+      font-weight: 700;
+      line-height: 0.833;
+      letter-spacing: -0.02em;
+    }
+
+    /* The photo sits left of the burger (40px in from the right, 1.15em of the nav's font wide) */
+    .cv-photo {
+      position: absolute;
+      top: 1.3em;
+      right: calc(40px + 1.15 * clamp(1.4rem, 2.6vw, 2.2rem) + 24px);
+      /* Full size where there's room; otherwise only as wide as the space between the name, email and
+         Download CV (which end 24.9em in) plus a 1.5em gap, and its right edge, so it never overlaps them */
+      width: min(12.7em, calc(100cqw - 26.4em - 40px - 1.15 * clamp(1.4rem, 2.6vw, 2.2rem) - 24px));
+      aspect-ratio: 814 / 875;
+      object-fit: cover;
+      object-position: 50% 0;
+    }
+
+    /* Bold labels and section headings */
+    .cv-label,
+    .cv-heading {
+      font-family: "General Sans", system-ui, sans-serif;
+      font-weight: 600;
+    }
+
+    .cv-label {
+      font-size: 1.08em;
+    }
+
+    .cv-contact {
+      display: flex;
+      margin-top: 1em;
+    }
+
+    /* Email, then the download button beside it, level with the address */
+    .cv-contact {
+      align-items: flex-end;
+      column-gap: 2.5em;
+    }
+
+    .cv-value {
+      margin-top: 0.75em;
+    }
+
+    /* Download button, styled like "See More" on the phone card: white on the index tabs' blue */
+    .cv-doc .cv-download {
+      display: inline-block;
+      padding: 0.35em 0.8em;
+      font-family: "General Sans", system-ui, sans-serif;
+      font-size: 1.08em;
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+      color: #ffffff;
+      background: #7fa6d6;
+      border-radius: 0.3em;
+      transition: color 0.15s;
+    }
+
+    .cv-doc .cv-download:hover,
+    .cv-doc .cv-download:focus-visible {
+      color: #000000;
+      outline: none;
+    }
+
+    .cv-underline {
+      text-decoration: underline;
+      text-decoration-thickness: 0.05em;
+      text-underline-offset: 0.12em;
+    }
+
+    /* Section headings: larger, with a line underneath across the page */
+    .cv-heading {
+      margin-top: 0.8em;
+      padding-bottom: 0.1em;
+      border-bottom: 2px solid #000000;
+      font-size: 1.9em;
+    }
+
+    /* Two columns, the second starting at the page's centre line */
+    .cv-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 0.8em;
+    }
+
+    .cv-col {
+      padding-right: 0.5em;
+    }
+
+    /* Same gap under its bold title as the references' (0.75em plus their taller line's 0.15em) */
+    .cv-list {
+      margin-top: 0.9em;
+      padding-left: 1.16em;
+      list-style: none;
+      line-height: 1;
+    }
+
+    .cv-list li {
+      position: relative;
+    }
+
+    .cv-list li + li,
+    .cv-list + .cv-label {
+      margin-top: 0.85em;
+    }
+
+    .cv-list li::before {
+      content: '';
+      position: absolute;
+      left: -0.97em;
+      top: 0.39em;
+      width: 0.2em;
+      height: 0.2em;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* References: organisation, then each referee's title and name */
+    .cv-ref {
+      margin-top: 0.75em;
+      line-height: 1.3;
+    }
+
+    /* The letter link, with the note lined up under it */
+    .cv-letter {
+      margin-top: 0.75em;
+    }
+
+    .cv-note {
+      margin-top: 1.2em;
+      font-size: 0.8em;
+    }
+
+    /* Phones: one column, with the photo under the name and the text at a readable size */
+    @media (max-width: 700px) {
+      .cv-doc {
+        padding: 0.5em 16px 3em;
+        font-size: 16px;
+      }
+
+      .cv-name {
+        font-size: min(4.7em, 19vw);
+      }
+
+      .cv-photo {
+        position: static;
+        display: block;
+        width: min(60%, 280px);
+        margin-top: 1.2em;
+      }
+
+      .cv-contact {
+        display: block;
+        margin-top: 1.2em;
+      }
+
+      .cv-contact > div {
+        width: auto;
+      }
+
+      .cv-contact > div + div {
+        margin-top: 0.95em;
+      }
+
+      .cv-cols {
+        display: block;
+      }
+
+      .cv-col {
+        padding-right: 0;
+      }
+
+      .cv-col + .cv-col {
+        margin-top: 1.4em;
+      }
+    }
+
+    /* What's new? page: a 3 × 3 grid of photos on dark brown, the middle one whole and the outer ones
+       running off the page's edges (sizes from the A4 mock-up). It fades in over the rolodex canvas once
+       the middle card fills the screen (body.news-open, body.news-shown) */
+    .news-page {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      background: #2a201c;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    body.news-open .news-page {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* It fades in over the full-screen card (only on the way in; going Home it goes at once) */
+    body.news-shown .news-page {
+      z-index: 3;
+      transition: opacity 0.8s;
+    }
+    body.news-shown .site-nav { z-index: 5; }
+    body.news-open .site-title { visibility: hidden; }
+
+    .news-grid {
+      --gap: 3.5vw;   /* the same brown gap between every cell */
+      position: absolute;
+      left: 50%;
+      top: calc(50% - 3.3vh);
+      display: grid;
+      grid-template-columns: repeat(3, 54.6vw);
+      grid-template-rows: repeat(3, 49.6vh);
+      gap: var(--gap);
+      transform: translate(-50%, -50%);
+    }
+
+    /* Each photo cell; its overlays are sized in cqw, so they scale with the cell */
+    .news-cell {
+      position: relative;
+      overflow: hidden;
+      container-type: inline-size;
+    }
+
+    .news-cell img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* The outer photos sit on their own layer under the grid, so they can drift from cell to cell. The
+       script places them (stepNewsTrack()), each filling only the part of its spot that's on the page */
+    .news-track {
+      position: absolute;
+      inset: 0;
+    }
+
+    .news-track img {
+      position: absolute;
+      object-fit: cover;
+    }
+
+    .news-bar {
+      position: absolute;
+      background: #2a201c;
+    }
+
+    /* After a pause on just the photos, the labels and the M/FW panel fade in, then the panel's text */
+    .news-extra,
+    .news-panel::before,
+    .news-panel h2,
+    .news-text p {
+      opacity: 0;
+      transition: opacity 0.6s;
+    }
+
+    body.news-shown .news-extra,
+    body.news-shown .news-panel::before,
+    body.news-shown .news-panel h2 {
+      opacity: 1;
+      transition-delay: 1.4s;
+    }
+
+    body.news-shown .news-text p {
+      opacity: 1;
+      transition-delay: 1.9s;
+    }
+
+    .news-month {
+      position: absolute;
+      margin: 0;
+      font-weight: 600;
+      line-height: 1;
+      color: #ffffff;
+      text-decoration: none;
+      left: 0;
+      right: 0;
+      bottom: 4%;
+      font-size: 10.3cqw;
+      text-align: center;
+    }
+
+    .news-panel {
+      position: absolute;
+      left: 6.2cqw;
+      right: 6.3cqw;
+      top: 9.1%;
+      bottom: 9.3%;
+    }
+
+    /* The panel's white, on its own layer so it can fade in after M/FW */
+    .news-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: #ffffff;
+    }
+
+    .news-panel h2 {
+      position: relative;
+      margin: 1.8cqw 0 0;
+      font-size: 16cqw;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      text-align: center;
+      color: #000000;
+    }
+
+    .news-text {
+      position: absolute;
+      left: 7.1cqw;
+      right: 6.4cqw;
+      top: max(36.7%, 22cqw);   /* never higher than just under M/FW, which is sized by the width */
+      bottom: 4%;
+      overflow: hidden;
+      font-family: "Hind Vadodara", system-ui, sans-serif;
+      font-size: 2.4cqw;   /* replaced by sizeNewsText(), to match the portfolio previews' text */
+      line-height: 1.22;
+      color: #000000;
+    }
+
+    .news-text p { margin: 0; }
+
+    /* Only on phones: every photo end to end, drifting up the page (stepNewsTrack()), and the words
+       held still in the middle over them */
+    .news-column,
+    .news-phone-words { display: none; }
+
+    @media (max-width: 700px) {
+      /* The grid stays laid out (the dealt cards land on its cells) but isn't seen */
+      .news-grid,
+      .news-track { visibility: hidden; }
+
+      .news-column {
+        display: block;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+      }
+
+      .news-column img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      /* The model walls fill the screen (their height is set by the script), cropped from the top */
+      .news-column img.news-screen {
+        object-fit: cover;
+        object-position: 50% 0;
+      }
+
+      .news-phone-words {
+        display: flex;
+        position: absolute;
+        inset: 0;
+        flex-direction: column;
+        justify-content: center;
+        padding: 0 16px;
+      }
+
+      /* Level with the burger: the same top, line height and size, on the left */
+      .news-phone-words .news-month {
+        top: 24px;
+        left: 16px;
+        right: auto;
+        bottom: auto;
+        font-size: clamp(1.4rem, 2.6vw, 2.2rem);
+        line-height: 1.35;
+        text-align: left;
+      }
+
+      .news-phone-words .news-panel {
+        position: relative;
+        inset: auto;
+      }
+
+      .news-phone-words .news-panel h2 {
+        margin: 0.15em 0 0;
+        font-size: 18vw;
+      }
+
+      .news-phone-words .news-text {
+        position: relative;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        padding: 0.6em 8% 8%;
+        font-size: 16px;   /* the phone card's text size */
+      }
+    }
+
+    .portfolios a {
+      position: relative;
+      display: block;
+      padding-left: 4px;
+      color: inherit;
+      text-decoration: none;
+      border-top: 2px solid transparent;
+      border-bottom: 2px solid transparent;
+      margin-top: -2px;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.3);
+    }
+
+    /* "Selected Portfolios" line above the titles, in their font at the meta's size */
+    .portfolios {
+      --heading-size: clamp(0.9rem, 1.4vw, 1.3rem);
+    }
+
+    .portfolios-heading {
+      padding-left: 4px;
+      margin-bottom: 0.6em;
+      font-size: var(--heading-size);
+      font-weight: 500;
+      line-height: 1.2;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.3);
+    }
+
+    .portfolios .name {
+      display: block;
+      /* 9 rows at line-height 1.08, less the space taken by the border lines and the heading line,
+         until the widest title (Diagramming, 6.24em) would run past the screen's sides */
+      font-size: min(calc((100vh - var(--header-h) - 24px - 1.8 * var(--heading-size)) / 9.72), calc((100vw - 8px) / 6.24));
+      font-weight: 500;
+      line-height: 1.08;
+      white-space: nowrap;
+    }
+
+    .portfolios .meta {
+      position: absolute;
+      right: 0;
+      bottom: 0.3em;
+      font-size: clamp(0.9rem, 1.4vw, 1.3rem);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .portfolios a:hover,
+    .portfolios a:focus-visible,
+    .portfolios a.active {
+      border-color: #ffffff;
+      outline: none;
+    }
+
+    .portfolios a:hover .meta,
+    .portfolios a:focus-visible .meta,
+    .portfolios a.active .meta {
+      opacity: 1;
+    }
+
+    /* While the timeline hands over to a portfolio, the titles ignore the mouse and show no lines */
+    body.tl-trip .portfolios {
+      pointer-events: none;
+    }
+
+    body.tl-trip .portfolios a {
+      border-color: transparent;
+    }
+
+    body.tl-trip .portfolios .meta {
+      opacity: 0;
+    }
+
+    /* Portfolio preview laid over the opened card once it has flown in.
+       The layer is sized to the card each frame and its font-size is set from the
+       card's width, so everything inside is in ems and scales with the card */
+    .preview-layer {
+      position: fixed;
+      z-index: 2;
+      box-sizing: border-box;
+      padding: 1.6em 1.8em 4.4em;   /* bottom clears the rail slots */
+      color: #000000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+
+    /* "See More" laid over the opened card's blue index tab */
+    .tab-label {
+      position: fixed;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 1em;
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+      text-decoration: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s, color 0.15s;
+    }
+
+    .tab-label.shown {
+      opacity: 1;
+      pointer-events: auto;
+      transition-duration: 0.3s, 0.15s;
+    }
+
+    .tab-label:hover,
+    .tab-label:focus-visible {
+      color: #000000;
+      outline: none;
+    }
+
+    .preview-layer.shown {
+      opacity: 1;
+      pointer-events: auto;
+      transition-duration: 0.3s;
+    }
+
+    .preview {
+      display: none;
+      grid-template-columns: 17em minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      column-gap: 1.6em;
+      height: 100%;
+    }
+
+    .preview.current {
+      display: grid;
+    }
+
+    .preview-title {
+      grid-column: 1;
+      margin: 0 0 0.5em;
+      font-size: 2.3em;
+      font-weight: 600;
+      line-height: 1.1;
+      color: #000000;
+    }
+
+    .preview-text {
+      font-family: "Hind Vadodara", system-ui, sans-serif;
+      font-size: 1em;   /* replaced by fitPreviewText() so the text fills the card height */
+      min-height: 0;
+      overflow: hidden;
+      line-height: 1.22;
+    }
+
+    .preview-text p {
+      margin: 0 0 0.9em;
+    }
+
+    .preview-text p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* The timeline fills the card: an arrowed line across the middle and a node per portfolio
+       with its preview drawing above or below on a dotted stem */
+    .timeline {
+      position: absolute;
+      inset: 1.5em 3em 2.4em;
+    }
+
+    .tl-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 0.5em;
+      transform: translateY(-50%);   /* drawn by the script with gaps inside each node */
+    }
+
+    .tl-arrow {
+      position: absolute;
+      left: 99.1%;
+      top: 50%;
+      transform: translate(-100%, -50%);
+      border-left: 1.35em solid #000000;
+      border-top: 0.8em solid transparent;
+      border-bottom: 0.8em solid transparent;
+    }
+
+    .tl-item {
+      position: absolute;
+      left: var(--x);
+      top: 50%;
+      width: 0;
+      height: 0;
+      padding: 0;
+      border: 0;
+      background: none;
+      font-size: inherit;
+      cursor: pointer;
+    }
+
+    .tl-dot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 3.2em;
+      height: 3.2em;
+      box-sizing: border-box;
+      border: 0.3em solid #000000;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: background 0.15s;
+    }
+
+    .tl-item:hover .tl-dot,
+    .tl-item:focus-visible .tl-dot {
+      background: #460708;
+    }
+
+    .tl-item:focus-visible {
+      outline: none;
+    }
+
+    .tl-stem {
+      position: absolute;
+      left: 0;
+      height: calc(var(--stem) + var(--reach, 0em));   /* --reach carries it on to the drawing itself */
+      border-left: 0.2em dotted #000000;
+      transform: translateX(-50%);
+    }
+
+    .tl-item.up .tl-stem { bottom: 1.6em; }
+    .tl-item.down .tl-stem { top: 1.6em; }
+
+    /* Each drawing sits over its stem, --dx from its node, sized so neighbours don't overlap */
+    .tl-item img {
+      position: absolute;
+      left: var(--dx);
+      width: var(--w);
+      height: var(--h);
+      object-fit: contain;
+    }
+
+    .tl-item.up img {
+      bottom: calc(1.6em + var(--stem));
+      object-position: bottom;
+    }
+
+    .tl-item.down img {
+      top: calc(1.6em + var(--stem));
+      object-position: top;
+    }
+
+    .tl-year {
+      position: absolute;
+      left: var(--x);
+      top: 50%;
+      font-size: 1.55em;
+      font-weight: 600;
+      line-height: 1;
+      color: #460708;
+    }
+
+    .tl-year.up { transform: translate(-50%, calc(-100% - 1.55em)); }
+    .tl-year.down { transform: translate(-50%, 1.68em); }
+
+    /* The timeline's title only shows on the flat phone card */
+    .preview[data-portfolio="timeline"] .preview-title {
+      display: none;
+    }
+
+    /* Slides fill the right-hand side of the card; clicking moves to the next, looping round */
+    .preview-carousel {
+      grid-column: 2;
+      grid-row: 1 / -1;
+      position: relative;
+      min-height: 0;
+      cursor: pointer;
+    }
+
+    .preview-carousel img {
+      position: absolute;
+      inset: 0 0 2.2em;   /* leaves a strip at the bottom for the dots */
+      width: 100%;
+      height: calc(100% - 2.2em);
+      object-fit: contain;
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+
+    .preview-carousel img.current {
+      opacity: 1;
+    }
+
+    .carousel-dots {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 1.125em;   /* raised 1.5 dot-heights (0.75em each) */
+      display: flex;
+      justify-content: center;
+      gap: 0.7em;
+    }
+
+    .carousel-dots button {
+      width: 0.75em;
+      height: 0.75em;
+      padding: 0;
+      border: 0.12em solid #000000;
+      border-radius: 50%;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .carousel-dots button.current {
+      background: #000000;
+    }
+
+    .carousel-dots button:focus-visible {
+      outline: 0.12em solid #460708;
+      outline-offset: 0.2em;
+    }
+
+    /* < > arrows at the slide's sides, centred on it. Black over light, white over dark (.on-dark),
+       like the full portfolio's X */
+    .carousel-arrow {
+      position: absolute;
+      top: calc((100% - 2.2em - 2.4em) / 2);
+      width: 1.6em;
+      height: 2.4em;
+      padding: 0;
+      border: 0;
+      background: none;
+      color: #000000;
+      cursor: pointer;
+    }
+
+    .carousel-arrow.prev { left: 0.3em; }
+    .carousel-arrow.next { right: 0.3em; }
+    .carousel-arrow.on-dark { color: #ffffff; }
+
+    .carousel-arrow svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .carousel-arrow:hover svg,
+    .carousel-arrow:focus-visible svg {
+      opacity: 0.6;
+    }
+
+    .carousel-arrow:focus-visible {
+      outline: 0.12em solid currentColor;
+      outline-offset: 0.1em;
+    }
+
+    /* Phones: once the 3D card has flown up, a flat tall card takes over the screen below the title.
+       It has a black outline, scrolls, and lays everything out in a single column. The script stops
+       sizing and clipping the layer to the 3D card here, so these sizes are fixed */
+    @media (max-width: 700px) {
+      .preview-layer {
+        left: 4px;
+        right: 4px;
+        top: 64px;
+        bottom: 0;
+        padding: 1.1em 1.1em 2em;
+        font-size: 16px;
+        background: #efd8c7;
+        border: 2px solid #000000;
+        border-bottom: 0;
+        border-radius: 14px 14px 0 0;
+        overflow-y: auto;
+      }
+
+      .preview.current {
+        display: block;
+        height: auto;
+      }
+
+      .preview-title {
+        font-size: 1.7em;
+        margin-bottom: 0.6em;
+      }
+
+      .preview-text {
+        overflow: visible;
+      }
+
+      /* Every slide, stacked under the text, each framed in black */
+      .preview-carousel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2em;
+        margin-top: 1.4em;
+        cursor: default;
+      }
+
+      .preview-carousel img {
+        position: static;
+        display: block;
+        width: 100%;
+        height: auto;
+        opacity: 1;
+        box-sizing: border-box;
+        border: 1.5px solid #000000;
+        background: #ffffff;
+      }
+
+      .carousel-dots,
+      .carousel-arrow { display: none; }
+
+      /* Timeline: newest first, the years as headings and the drawings centred under them */
+      .preview[data-portfolio="timeline"] .preview-title { display: block; }
+
+      .timeline {
+        position: static;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.4em;
+      }
+
+      .tl-line, .tl-arrow, .tl-dot, .tl-stem { display: none; }
+
+      .timeline .tl-item,
+      .timeline .tl-year {
+        position: static;
+        width: auto;
+        height: auto;
+        transform: none;
+      }
+
+      .timeline .tl-year {
+        align-self: flex-start;
+        margin-top: 0.4em;
+        font-size: 1.5em;
+      }
+
+      .timeline .tl-item img {
+        position: static;
+        display: block;
+        width: min(75vw, 18em);
+        height: 11em;
+        transform: none;
+        object-position: center;
+      }
+
+      /* See More moves onto the flat card's top-right corner */
+      .tab-label {
+        top: calc(64px + 1.1em);
+        right: calc(4px + 1.1em);
+        z-index: 3;
+        padding: 0.35em 0.8em;
+        font-size: 1rem;
+        background: #7fa6d6;
+        border-radius: 0.3em;
+      }
+    }
+
+    /* Full portfolio opened from "See More": a scrolling stack of pages over the whole screen,
+       with the site title and burger hidden and a close X in the burger's place */
+    .portfolio-full {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      overflow-y: auto;
+      background: rgba(18, 12, 8, 0.94);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0s 0.3s;
+    }
+
+    body.full-open .portfolio-full {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.3s;
+    }
+
+    body.full-open .site-title,
+    body.full-open .site-nav { visibility: hidden; }
+
+    /* Close X: same box and position as the burger, bars the burger's thickness */
+    .full-close {
+      position: fixed;
+      top: 24px;
+      right: 40px;
+      z-index: 11;
+      display: none;
+      align-items: center;
+      height: 1.35em;
+      padding: 0;
+      border: 0;
+      background: none;
+      cursor: pointer;
+      font-size: clamp(1.4rem, 2.6vw, 2.2rem);
+    }
+
+    body.full-open .full-close {
+      display: flex;
+    }
+
+    /* White over the dark backdrop, black while a light part of a page is under it (.on-light) */
+    .full-close {
+      color: #ffffff;
+    }
+
+    .full-close.on-light {
+      color: #000000;
+    }
+
+    .full-close svg {
+      display: block;
+      width: 1.15em;
+      height: auto;
+      fill: currentColor;
+    }
+
+    .full-close:hover svg,
+    .full-close:focus-visible svg {
+      opacity: 0.6;
+    }
+
+    .full-close:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 4px;
+    }
+
+    .portfolio-pages {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 110px 16px 64px;   /* top clears the title and burger */
+    }
+
+    .portfolio-pages canvas {
+      display: block;
+      width: min(100%, 1000px);
+      height: auto;
+      background: #ffffff;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    @media (max-width: 700px) {
+      :root { --header-h: 72px; }
+      .site-title { left: 8px; }
+      .site-nav { right: 16px; }
+      .full-close { right: 16px; }
+      .portfolios { left: 4px; right: 16px; bottom: auto; }   /* top is set by resize() */
+      /* 12vw, but never so tall that the list runs up into the site title on a squarer window */
+      .portfolios .name { font-size: min(12vw, calc((100vh - var(--header-h) - 24px - 1.8 * var(--heading-size)) / 9.72)); }
+      .portfolios .meta { font-size: 0.6rem; bottom: 0.4em; }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="site-title">ISABELLA HANDBURY</h1>
+
+  <nav class="site-nav" id="site-nav">
+    <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-menu">
+      <svg viewBox="0 0 625 436" aria-hidden="true">
+        <rect x="0" y="0" width="625" height="100" rx="3" fill="#ffffff"/>
+        <rect x="0" y="168" width="625" height="100" rx="3" fill="#ffffff"/>
+        <rect x="0" y="336" width="625" height="100" rx="3" fill="#ffffff"/>
+      </svg>
+    </button>
+    <div class="nav-menu" id="nav-menu">
+      <a href="#">CV</a>
+      <a href="#">Timeline</a>
+      <a href="#">What’s new?</a>
+    </div>
+  </nav>
+
+  <script>
+    // Burger swaps itself for the nav menu; clicking elsewhere or Escape brings it back.
+    // Each bar grows into its button on the same springy bounce as the rolodex card lift.
+    (() => {
+      const nav = document.getElementById('site-nav');
+      const burger = nav.querySelector('.burger');
+      const menu = nav.querySelector('.nav-menu');
+      const bars = [...burger.querySelectorAll('rect')];
+      const buttons = [...menu.querySelectorAll('a')];
+
+      const STIFFNESS = 90;   // same spring as the card rising out of the drum
+      const DAMPING = 11;     // below ~19 it overshoots slightly before settling
+      const STAGGER = 0.04;   // seconds between each button starting
+      const CREAM = [243, 234, 208];
+
+      const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const springs = buttons.map(() => ({ p: 0, vel: 0, delay: 0 }));
+      let target = 0;
+      let from = [];          // each bar's box, relative to its button's resting box
+      let running = false;
+      let last = 0;
+
+      // Box of each bar measured against where its button sits at rest
+      function measure() {
+        from = buttons.map((b, i) => {
+          b.style.transform = '';
+          const end = b.getBoundingClientRect();
+          const bar = bars[i].getBoundingClientRect();
+          return { x: bar.left - end.left, y: bar.top - end.top, sx: bar.width / end.width, sy: bar.height / end.height };
+        });
+      }
+
+      function draw() {
+        buttons.forEach((b, i) => {
+          const p = springs[i].p;
+          const f = from[i];
+          const sx = Math.max(0, f.sx + (1 - f.sx) * p);
+          const sy = Math.max(0, f.sy + (1 - f.sy) * p);
+          const c = Math.min(1, Math.max(0, p));
+          const text = Math.min(1, Math.max(0, (p - 0.6) / 0.4));   // text arrives last
+          b.style.transformOrigin = '0 0';
+          b.style.transform = `translate(${f.x * (1 - p)}px, ${f.y * (1 - p)}px) scale(${sx}, ${sy})`;
+          b.style.background = `rgb(${CREAM.map((v) => Math.round(255 + (v - 255) * c)).join()})`;
+          b.style.borderColor = `rgba(0, 0, 0, ${c})`;
+          b.style.color = `rgba(0, 0, 0, ${text})`;
+        });
+      }
+
+      function finish() {
+        buttons.forEach((b) => { b.style.cssText = ''; });
+        if (target === 0) {
+          nav.classList.remove('open');
+          menu.style.pointerEvents = '';
+          if (closeFocus) burger.focus();
+        }
+      }
+
+      function step(now) {
+        const dt = Math.min((now - last) / 1000, 0.05);
+        last = now;
+        let settled = true;
+        springs.forEach((s) => {
+          if (s.delay > 0) { s.delay -= dt; settled = false; return; }
+          s.vel += ((target - s.p) * STIFFNESS - s.vel * DAMPING) * dt;
+          s.p += s.vel * dt;
+          if (Math.abs(target - s.p) > 0.001 || Math.abs(s.vel) > 0.01) settled = false;
+        });
+        // On the way back, hand over to the burger once every button has shrunk onto its bar
+        if (target === 0 && springs.every((s) => s.p <= 0.02)) settled = true;
+        if (settled) {
+          springs.forEach((s) => { s.p = target; s.vel = 0; s.delay = 0; });
+          running = false;
+          finish();
+          return;
+        }
+        draw();
+        requestAnimationFrame(step);
+      }
+
+      let closeFocus = false;
+      function animateTo(t) {
+        target = t;
+        if (reduceMotion) {
+          springs.forEach((s) => { s.p = t; s.vel = 0; });
+          finish();
+          return;
+        }
+        springs.forEach((s, i) => { s.delay = STAGGER * (t ? i : buttons.length - 1 - i); });
+        draw();
+        if (!running) {
+          running = true;
+          last = performance.now();
+          requestAnimationFrame(step);
+        }
+      }
+
+      function open() {
+        nav.classList.add('open');
+        burger.setAttribute('aria-expanded', true);
+        menu.style.pointerEvents = '';
+        if (!running) measure();
+        animateTo(1);
+        buttons[0].focus({ preventScroll: true });
+      }
+
+      function close(focusBurger) {
+        if (!nav.classList.contains('open') || target === 0) return;
+        burger.setAttribute('aria-expanded', false);
+        menu.style.pointerEvents = 'none';
+        closeFocus = focusBurger;
+        animateTo(0);
+      }
+      nav.closeMenu = () => close(false);   // used by the menu buttons in the rolodex script
+
+      burger.addEventListener('click', open);
+      document.addEventListener('click', (e) => { if (!nav.contains(e.target)) close(false); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(true); });
+    })();
+  </script>
+
+  <canvas id="rolodex"></canvas>
+
+  <!-- One preview per portfolio, matched to its title's slug ("Rear Wing" -> rear-wing) -->
+  <a class="tab-label" id="tab-label" href="#">See More</a>
+
+  <div class="preview-layer" id="preview-layer">
+    <!-- Timeline card, spat out by the Timeline button. Each node opens its portfolio's card.
+         Listed newest first for the phone layout; on desktop --x places each along the line -->
+    <article class="preview" data-portfolio="timeline">
+      <h2 class="preview-title">Timeline</h2>
+      <div class="timeline">
+        <span class="tl-line"></span>
+        <span class="tl-arrow"></span>
+
+        <span class="tl-year down" style="--x: 81.6%">2026</span>
+        <button class="tl-item up" type="button" data-portfolio="cyberstar" aria-label="Cyberstar, 2026" style="--x: 81.6%; --dx: -6.7em; --w: 13.4em; --h: 14em; --stem: 2.8em"><span class="tl-dot"></span><span class="tl-stem"></span><img src="images/previews/cyberstar.png" alt=""></button>
+
+        <span class="tl-year up" style="--x: 54.4%">2025</span>
+        <button class="tl-item down" type="button" data-portfolio="prototyping" aria-label="Prototyping, 2025" style="--x: 65.9%; --dx: -4.5em; --w: 15em; --h: 12em; --stem: 2.8em"><span class="tl-dot"></span><span class="tl-stem"></span><img src="images/previews/prototyping.png" alt=""></button>
+        <button class="tl-item up" type="button" data-portfolio="computation" aria-label="Computation, 2025" style="--x: 60.2%; --dx: -3.5em; --w: 7em; --h: 13em; --stem: 2.8em"><span class="tl-dot"></span><span class="tl-stem"></span><img src="images/previews/computation.png" alt=""></button>
+        <button class="tl-item down" type="button" data-portfolio="diagramming" aria-label="Diagramming, 2025" style="--x: 54.4%; --dx: -7.7em; --w: 11em; --h: 7.5em; --stem: 2.8em"><span class="tl-dot"></span><span class="tl-stem"></span><img src="images/previews/diagramming.png" alt=""></button>
+
+        <span class="tl-year down" style="--x: 27.9%">2024</span>
+        <button class="tl-item up" type="button" data-portfolio="possums" aria-label="Possums, 2024" style="--x: 39.4%; --dx: -3.9em; --w: 13em; --h: 10em; --stem: 2.8em"><span class="tl-dot"></span><span class="tl-stem"></span><img src="images/previews/possums.png" alt=""></button>
+        <button class="tl-item down" type="button" data-portfolio="interactive" aria-label="Interactive, 2024" style="--x: 33.7%; --dx: -5.7em; --w: 12.6em; --h: 8em; --stem: 2.8em"><span class="tl-dot"></span><span class="tl-stem"></span><img src="images/previews/interactive.png" alt=""></button>
+        <button class="tl-item up" type="button" data-portfolio="orange" aria-label="Orange, 2024" style="--x: 27.9%; --dx: -8.05em; --w: 11.5em; --h: 10em; --stem: 2.8em"><span class="tl-dot"></span><span class="tl-stem"></span><img src="images/previews/orange.png" alt=""></button>
+
+        <span class="tl-year up" style="--x: 17%">2023</span>
+        <button class="tl-item down" type="button" data-portfolio="rear-wing" aria-label="Rear Wing, 2023" style="--x: 17%; --dx: -7.2em; --w: 12em; --h: 12.5em; --stem: 2.8em"><span class="tl-dot"></span><span class="tl-stem"></span><img src="images/previews/rear-wing.png" alt=""></button>
+
+        <span class="tl-year down" style="--x: 7.1%">2022</span>
+        <button class="tl-item up" type="button" data-portfolio="assist-chair" aria-label="Assist Chair, 2022" style="--x: 7.1%; --dx: -4.2em; --w: 8.4em; --h: 14em; --stem: 2.8em"><span class="tl-dot"></span><span class="tl-stem"></span><img src="images/previews/assist-chair.png" alt=""></button>
+      </div>
+    </article>
+
+    <article class="preview" data-portfolio="orange" data-full="images/portfolios/orange/full/folio.pdf">
+      <h2 class="preview-title">Oranges</h2>
+      <div class="preview-text">
+        <p>Oranges Possums and Ants is a foundational design portfolio completed during the first year of my undergraduate degree in the class "Foundations of Design Representation".</p>
+        <p>The portfolio centres around design representation and contains; photography, hand sketching, 2D digital sketching and 3D display models created to scale in CAD software Rhinoceros 3D.</p>
+        <p>The portfolio graphically displays the history of oranges, animal's interaction with the fruit and general exploration of design principles.</p>
+      </div>
+      <div class="preview-carousel">
+        <img src="images/portfolios/orange/1.jpg" alt="Oranges Possums and Ants title page" loading="lazy">
+        <img src="images/portfolios/orange/2.jpg" alt="Dimensioned hand sketches of orange segments and peel" loading="lazy">
+        <img src="images/portfolios/orange/3.jpg" alt="Line drawing of a possum beside the orange installation" loading="lazy">
+        <img src="images/portfolios/orange/4.jpg" alt="Interior view of the installation with visitors and an ant" loading="lazy">
+        <img src="images/portfolios/orange/5.jpg" alt="Axonometric of the orange peel installation" loading="lazy">
+      </div>
+    </article>
+
+    <article class="preview" data-portfolio="assist-chair" data-full="images/portfolios/assist-chair/full/folio.pdf">
+      <h2 class="preview-title">Assist Chair</h2>
+      <div class="preview-text">
+        <p>The Assistance Chair portfolio was completed as my Units 3 and 4 Product Design project. In this subject I received a 48 raw score to contribute to my ATAR.</p>
+        <p>The project focused on accessibility and ergonomics to create a chair to assist an individual with a disability and their caregiver. The chair was designed, modelled and built.</p>
+        <p>The portfolio consists of a rigorous production journal, Gantt chart and modifications log, all leading to the completion of the Assistance Chair.</p>
+      </div>
+      <div class="preview-carousel">
+        <img src="images/portfolios/assist-chair/2.jpg" alt="Dimensioned technical drawing of the Assistance Chair" loading="lazy">
+        <img src="images/portfolios/assist-chair/1.jpg" alt="Preferred design option justification and final design sketches" loading="lazy">
+        <img src="images/portfolios/assist-chair/3.jpg" alt="Rendered model and exploded view of the chair" loading="lazy">
+        <img src="images/portfolios/assist-chair/4.jpg" alt="Build steps: sanding, varnishing and painting the chair" loading="lazy">
+      </div>
+    </article>
+
+    <article class="preview" data-portfolio="rear-wing" data-full="images/portfolios/rear-wing/full/folio.pdf">
+      <h2 class="preview-title">Rear Wing</h2>
+      <div class="preview-text">
+        <p>The Model DRS portfolio was completed as my Units 3 and 4 Systems Engineering project.</p>
+        <p>Derived from my interest in the engineering aspects of Formula 1, I designed, tested and modelled a rear wing of an F1 car with a pneumatic actuator. The wing followed the FIA's sporting regulations.</p>
+        <p>The final result was a resin 3D-printed static model focused on aerodynamic elements, and an actuating carbon fibre section model focused on motion and electronic integration.</p>
+      </div>
+      <div class="preview-carousel">
+        <img src="images/portfolios/rear-wing/3.jpg" alt="Marker sketches of the DRS actuator and rear wing" loading="lazy">
+        <img src="images/portfolios/rear-wing/1.jpg" alt="Circuit diagram for the model DRS with justification" loading="lazy">
+        <img src="images/portfolios/rear-wing/2.jpg" alt="Annotated rear wing regulation reference volumes" loading="lazy">
+        <img src="images/portfolios/rear-wing/4.jpg" alt="Dimensioned technical drawing of rear wing option 3" loading="lazy">
+      </div>
+    </article>
+
+    <article class="preview" data-portfolio="interactive" data-full="images/portfolios/interactive/full/folio.pdf">
+      <h2 class="preview-title">Interactive</h2>
+      <div class="preview-text">
+        <p>Surfaces &amp; Shapes follows on from the foundational design work completed in Oranges Possums and Ants ("Oranges"), focusing on my technical skill with parametric design completed in Rhinoceros 3D.</p>
+        <p>The portfolio works on iterating on panels and grids to produce a render acting as a metaphor for an orange surface.</p>
+        <p>Stylistic elements and a command of lighting were a major point of importance in the renders.</p>
+      </div>
+      <div class="preview-carousel">
+        <img src="images/portfolios/interactive/1.jpg" alt="Surfaces and Shapes title slide" loading="lazy">
+        <img src="images/portfolios/interactive/2.jpg" alt="Computationally supported iteration, with aerodynamic flow studies" loading="lazy">
+        <img src="images/portfolios/interactive/3.jpg" alt="Panel analysis of eight surface iterations, P01 to P08" loading="lazy">
+        <img src="images/portfolios/interactive/4.jpg" alt="Three chosen panels highlighted on the surface with their unrolled templates" loading="lazy">
+        <img src="images/portfolios/interactive/5.jpg" alt="Zoomed renders of the panelised surface" loading="lazy">
+      </div>
+    </article>
+
+    <article class="preview" data-portfolio="possums" data-full="images/portfolios/possums/full/folio.pdf">
+      <h2 class="preview-title">Possums</h2>
+      <div class="preview-text">
+        <p>If Possums Roamed Professors Walk centres around the idea of rewilding urban spaces, particularly a prominent location on the University of Melbourne campus. Built from biodiversity metrics and design ideation, a form is created to promote possum rewilding on campus.</p>
+        <p>The form is built upon the BIG Pavilion, where its structural elements informed the entire design.</p>
+        <p>Rhinoceros 3D was used to model the design in 3D, with 2D drawings being extracted from this and presented as architectural drawings. A narrative sequence is then formed following these design drawings.</p>
+      </div>
+      <div class="preview-carousel">
+        <img src="images/portfolios/possums/1.jpg" alt="If Possums Roamed Professors Walk title slide" loading="lazy">
+        <img src="images/portfolios/possums/2.jpg" alt="Catalogue of local fauna and flora silhouettes with family and origin" loading="lazy">
+        <img src="images/portfolios/possums/3.jpg" alt="Food web of the site's species feeding into organic matter" loading="lazy">
+        <img src="images/portfolios/possums/4.jpg" alt="Plans and sections of the installation at 1:300" loading="lazy">
+        <img src="images/portfolios/possums/5.jpg" alt="Isometric of the stacked-tube installation at 1:200" loading="lazy">
+      </div>
+    </article>
+
+    <article class="preview" data-portfolio="diagramming" data-full="images/portfolios/diagramming/full/folio.pdf">
+      <h2 class="preview-title">Diagramming</h2>
+      <div class="preview-text">
+        <p>The Diagramming portfolio was the first of three portfolios completed in my second-year architecture elective. All three centre around the precedent design DHY House in the Thai Nguyen region of Vietnam.</p>
+        <p>The portfolio focuses on representing the house in various aspects, with site and context, shadow, massing, programmatic and circulation diagrams being completed.</p>
+        <p>2D diagrams were completed in Affinity Designer, and all 3D diagram linework was derived from my Rhinoceros 3D model. Ladybug was used for the shadow study.</p>
+      </div>
+      <div class="preview-carousel">
+        <img src="images/portfolios/diagramming/1.jpg" alt="DHY House site and context plans with shadow study" loading="lazy">
+        <img src="images/portfolios/diagramming/2.jpg" alt="DHY House massing diagram sequence" loading="lazy">
+        <img src="images/portfolios/diagramming/3.jpg" alt="DHY House programmatic and circulation diagrams with vignettes" loading="lazy">
+      </div>
+    </article>
+
+    <article class="preview" data-portfolio="computation" data-full="images/portfolios/computation/full/folio.pdf">
+      <h2 class="preview-title">Computation</h2>
+      <div class="preview-text">
+        <p>The Computation portfolio is the second of three portfolios completed in the architecture elective "Design Processes and Techniques". The portfolio progresses from the Diagramming portfolio to look at parametric variations of the DHY House precedent.</p>
+        <p>Grasshopper was used alongside Rhinoceros 3D to produce variations of the model. Ladybug was then used to complete solar analysis.</p>
+        <p>The portfolio includes the Grasshopper script for angling roof volumes and shaping and angling louvres.</p>
+      </div>
+      <div class="preview-carousel">
+        <img src="images/portfolios/computation/1.jpg" alt="DHY House computational design workflow" loading="lazy">
+        <img src="images/portfolios/computation/2.jpg" alt="DHY House massing model variations" loading="lazy">
+        <img src="images/portfolios/computation/3.jpg" alt="DHY House second skin louvre variations" loading="lazy">
+        <img src="images/portfolios/computation/4.jpg" alt="DHY House solar analysis of the second skin variations" loading="lazy">
+        <img src="images/portfolios/computation/5.jpg" alt="DHY House Grasshopper script for roof angling and louvres" loading="lazy">
+      </div>
+    </article>
+
+    <article class="preview" data-portfolio="prototyping" data-full="images/portfolios/prototyping/full/folio.pdf">
+      <h2 class="preview-title">Prototyping</h2>
+      <div class="preview-text">
+        <p>The Prototyping portfolio is the final portfolio in the architecture elective "Design Processes and Techniques", following Diagramming and Computation.</p>
+        <p>The portfolio consists of 2D linework extracted from a Rhinoceros 3D model of the DHY House section I designed, and the stages of building a 3D prototype with 3D-printed facade pieces.</p>
+        <p>The final element is renders completed in Twinmotion, with post-production in Affinity Designer and Affinity Photo.</p>
+      </div>
+      <div class="preview-carousel">
+        <img src="images/portfolios/prototyping/1.jpg" alt="DHY House physical model breakdown and 1:50 model photos" loading="lazy">
+        <img src="images/portfolios/prototyping/2.jpg" alt="DHY House model construction documentation in eleven steps" loading="lazy">
+        <img src="images/portfolios/prototyping/3.jpg" alt="DHY House external and internal renders of the second skin facade" loading="lazy">
+        <img src="images/portfolios/prototyping/4.jpg" alt="DHY House rendering process and post-production detail" loading="lazy">
+      </div>
+    </article>
+
+    <article class="preview" data-portfolio="cyberstar" data-full="images/portfolios/cyberstar/full/folio.pdf">
+      <h2 class="preview-title">Cyberstar</h2>
+      <div class="preview-text">
+        <p>The Cyberstar portfolio is the design document for this website.</p>
+        <p>It includes web design research, stylescape iteration, a sitemap, work on typography, site wireframes and an HTML work in progress completed on Neocities, with the main pieces being the Home page, Portfolio page and Timeline showcases.</p>
+        <p>These acted as mock-ups, being an accumulation of all my design choices, and they are what this site is derived from.</p>
+      </div>
+      <div class="preview-carousel">
+        <img src="images/portfolios/cyberstar/1.jpg" alt="Isabella Handbury Design Document cover on a Rolodex card" loading="lazy">
+        <img src="images/portfolios/cyberstar/2.jpg" alt="Stylescape: 1970s office collage, colour palette and typefaces" loading="lazy">
+        <img src="images/portfolios/cyberstar/3.jpg" alt="Colour, illustrated elements and buttons, with the Rolodex proof of concept" loading="lazy">
+        <img src="images/portfolios/cyberstar/4.jpg" alt="Home page showcase for desktop and mobile" loading="lazy">
+      </div>
+    </article>
+  </div>
+
+  <ul class="portfolios" id="portfolios">
+    <li class="portfolios-heading">Selected Portfolios 2022 – 2026</li>
+    <li><a href="#"><span class="name">Cyberstar</span><span class="meta">2026, Web Design</span></a></li>
+    <li><a href="#"><span class="name">Prototyping</span><span class="meta">2025, Architecture</span></a></li>
+    <li><a href="#"><span class="name">Computation</span><span class="meta">2025, Architecture</span></a></li>
+    <li><a href="#"><span class="name">Diagramming</span><span class="meta">2025, Architecture</span></a></li>
+    <li><a href="#"><span class="name">Possums</span><span class="meta">2024, Design</span></a></li>
+    <li><a href="#"><span class="name">Interactive</span><span class="meta">2024, Design</span></a></li>
+    <li><a href="#"><span class="name">Orange</span><span class="meta">2024, Design</span></a></li>
+    <li><a href="#"><span class="name">Rear Wing</span><span class="meta">2023, Systems Engineering</span></a></li>
+    <li><a href="#"><span class="name">Assist Chair</span><span class="meta">2022, Product Design</span></a></li>
+  </ul>
+
+  <!-- What's new? page, revealed as the animation's middle card shrinks back into place. The photos load
+       when it opens (data-src), in grid order: top row, middle row, bottom row -->
+  <section class="news-page" id="news-page" aria-label="What's new?">
+    <div class="news-column" id="news-column" aria-hidden="true"></div>
+    <div class="news-phone-words" id="news-phone-words"></div>
+    <div class="news-track" id="news-track"></div>
+    <div class="news-grid">
+      <div class="news-cell">
+        <img data-src="images/news/bag.jpg" alt="A bag with a starfish keychain hanging on a rack backstage">
+      </div>
+      <div class="news-cell">
+        <img data-src="images/news/name-rack.jpg" style="object-position: 50% 35%" alt="Clothing racks under blue light, labelled with the models' names">
+        <p class="news-month news-extra">October 2026</p>
+      </div>
+      <div class="news-cell"><img data-src="images/news/covered-racks.jpg" alt="Racks of clothes in plastic covers"></div>
+      <div class="news-cell"><img data-src="images/news/blue-rack.jpg" alt="A rack of outfits under blue light"></div>
+      <div class="news-cell">
+        <img data-src="images/news/model-wall.jpg" style="object-position: 50% 0%" alt="The wall of model fitting photos, each labelled with a name and number">
+        <div class="news-panel">
+          <h2>M/FW</h2>
+          <div class="news-text"><p>"What's new?" I recently had the opportunity to volunteer with Melbourne Fashion Week, participating in collections hub accessory and material preparation as well as back-of-house roles during the CULT STATUS runway. Roles included dressing models, assisting runway stylists and their team, completing inventory and itemising looks.</p></div>
+        </div>
+      </div>
+      <div class="news-cell"><img data-src="images/news/rosie-rack.jpg" alt="A model's clothing rack labelled Rosie G"></div>
+      <div class="news-cell"><img data-src="images/news/backstage.jpg" alt="Models lining up backstage under blue lights"></div>
+      <div class="news-cell"><img data-src="images/news/cream-rack.jpg" style="object-position: 50% 0%" alt="A rack of cream and white garments"></div>
+      <div class="news-cell"><img data-src="images/news/deer-top.jpg" alt="A ruffled top with a deer-spot print on a hanger"></div>
+    </div>
+  </section>
+
+  <!-- CV page, revealed once the CV animation's last card has filled the screen -->
+  <section class="cv-page" id="cv-page" aria-label="CV">
+    <div class="cv-scroll" id="cv-scroll">
+      <div class="cv-sheet">
+        <article class="cv-doc">
+          <p class="cv-name">Isabella<br>Handbury</p>
+          <img class="cv-photo" src="images/cv/photo.jpg" alt="Isabella Handbury">
+          <div class="cv-contact">
+            <div>
+              <p class="cv-label">Email</p>
+              <p class="cv-value"><a class="cv-underline" href="mailto:isabellahandbury@gmail.com">isabellahandbury@gmail.com</a></p>
+            </div>
+            <div>
+              <a class="cv-download" href="images/cv/Isabella_Handbury_CV.pdf" download>Download CV</a>
+            </div>
+          </div>
+
+          <p class="cv-heading">Education</p>
+          <div class="cv-cols">
+            <div class="cv-col">
+              <p class="cv-label">University of Melbourne&nbsp; (2024 - Present)</p>
+              <ul class="cv-list">
+                <li>Bachelor of Design, Majoring in Mechanical Systems</li>
+                <li>Early Acceptance into Masters of Mechanical Engineering</li>
+              </ul>
+            </div>
+            <div class="cv-col">
+              <p class="cv-label">Billanook College&nbsp; (2018 - 2023)</p>
+              <ul class="cv-list">
+                <li>ATAR (Australian Tertiary Admission Rank): 97.3</li>
+                <li>Billanook College Collegiate Award (2023)</li>
+              </ul>
+            </div>
+          </div>
+
+          <p class="cv-heading">Work and Volunteer Experience</p>
+          <div class="cv-cols">
+            <div class="cv-col">
+              <p class="cv-label">Weddings and Front of House Supervisor Coombe Yarra Valley (2024 - Present)</p>
+              <ul class="cv-list">
+                <li>Overseeing and implementing the wedding couple’s creative vision.</li>
+                <li>Navigating high pressure incidents with a solution forward mindset.</li>
+                <li>Managing staff to achieve quality outcomes whilst maintaining a strong team culture.</li>
+              </ul>
+            </div>
+            <div class="cv-col">
+              <p class="cv-label">Front of House Waitstaff, Tarrawarra Estate Restaurant (2023 - 2024)</p>
+              <ul class="cv-list">
+                <li>Assist management in the coordination of stocktake.</li>
+                <li>Present to, and educate guests on high level wine and food knowledge.</li>
+              </ul>
+              <p class="cv-label">Selected for Back of House Volunteer, Melbourne Fashion Week 2026</p>
+            </div>
+          </div>
+
+          <p class="cv-heading">References</p>
+          <div class="cv-cols">
+            <div class="cv-col">
+              <p class="cv-label">Coombe Yarra Valley</p>
+              <p class="cv-ref">Wedding and Events Coordinator<br>Gemma Hyde-Thomas</p>
+              <p class="cv-ref">Restaurant Manager<br>Blathnaid Murry</p>
+            </div>
+            <div class="cv-col">
+              <p class="cv-label">Billanook College</p>
+              <p class="cv-ref">Learning Leader Technology<br>Jamie Pointon</p>
+              <div class="cv-letter">
+                <a class="cv-underline" href="https://www.dropbox.com/scl/fi/7y08wpmwnzpfgn99nrb7e/Handbury-Isabella-Reference-JPO.pdf?rlkey=169s6iopx1ontae1x8afx1b21&amp;dl=0" target="_blank" rel="noopener">Letter of recommendation</a>
+                <p class="cv-note">All references’ contact details are available on request.</p>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- The full portfolio "See More" opens; pages are drawn in by the script -->
+  <section class="portfolio-full" id="portfolio-full" aria-label="Full portfolio">
+    <div class="portfolio-pages" id="portfolio-pages"></div>
+  </section>
+  <button class="full-close" id="full-close" type="button" aria-label="Close portfolio">
+    <svg viewBox="0 0 625 436" aria-hidden="true">
+      <rect x="54.5" y="168" width="516" height="100" rx="3" transform="rotate(45 312.5 218)"/>
+      <rect x="54.5" y="168" width="516" height="100" rx="3" transform="rotate(-45 312.5 218)"/>
+    </svg>
+  </button>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    const canvas = document.getElementById('rolodex');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+    camera.position.set(0, 2.2, 9.5);
+    camera.lookAt(0, -0.2, 0);
+
+    // Studio reflections so the chrome stand reads as polished metal
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    // Warm, low lighting to match the bar
+    scene.add(new THREE.HemisphereLight(0xffd9a8, 0x3a2016, 0.45));
+    const key = new THREE.DirectionalLight(0xffb070, 1.1);
+    key.position.set(3, 6, 5);
+    // Soft shadows between the cards give the stack depth
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.camera.left = -4;
+    key.shadow.camera.right = 4;
+    key.shadow.camera.top = 4;
+    key.shadow.camera.bottom = -4;
+    key.shadow.bias = -0.0005;
+    key.shadow.normalBias = 0.02;
+    key.shadow.radius = 4;
+    scene.add(key);
+    const rim = new THREE.DirectionalLight(0xff9a5c, 0.4);
+    rim.position.set(-4, 3, -5);
+    scene.add(rim);
+    const warm = new THREE.PointLight(0xff7a3a, 7, 20);
+    warm.position.set(-4, 1, 3);
+    scene.add(warm);
+
+    // Fixed three-quarter view showing the right-hand knob
+    const model = new THREE.Group();
+    model.rotation.y = -0.5;
+    model.scale.setScalar(0.8);
+    scene.add(model);
+
+    // ---- Dimensions ----
+    const PORTFOLIO_COUNT = document.querySelectorAll('#portfolios a').length;
+    const CARD_STEP = 10;                       // one portfolio card every 10 cards
+    const CARD_COUNT = PORTFOLIO_COUNT * CARD_STEP;
+    const CARD_W = 2.6;
+    const CARD_H = 1.45;
+    const CARD_T = 0.012;
+    const CORE_R = 0.5;
+    const NOTCH_X = 0.6;
+    const KNOB_R = 1.0;
+    const KNOB_T = 0.45;
+    const KNOB_X = CARD_W / 2 + KNOB_T / 2 + 0.03;
+    const HUB_X = KNOB_X + KNOB_T / 2 + 0.08;
+    const FLOOR_Y = -2.1;
+
+    // ---- Materials ----
+    const blackPlastic = new THREE.MeshStandardMaterial({ color: 0x18181a, roughness: 0.4, metalness: 0.05, side: THREE.DoubleSide });
+    const greyPlastic = new THREE.MeshStandardMaterial({ color: 0x8d8f92, roughness: 0.6, metalness: 0.1 });
+    const rubber = new THREE.MeshStandardMaterial({ color: 0x77736c, roughness: 0.85 });
+    const chrome = new THREE.MeshStandardMaterial({ color: 0xd6d8db, roughness: 0.15, metalness: 1.0, envMapIntensity: 0.75 });
+    const tabMat = new THREE.MeshStandardMaterial({ color: 0x7fa6d6, roughness: 0.4, transparent: true, opacity: 0.9 });
+
+    // ---- Spinning drum: cards, core, rails and knobs ----
+    const drum = new THREE.Group();
+    model.add(drum);
+
+    // Card outline with rounded corners and the two slots that clip onto the rails
+    function cardShape() {
+      const w = CARD_W / 2, h = CARD_H / 2, nw = 0.12, nh = 0.12, r = 0.09;
+      const s = new THREE.Shape();
+      s.moveTo(-w + r, -h);
+      for (const nx of [-NOTCH_X, NOTCH_X]) {
+        s.lineTo(nx - nw, -h);
+        s.lineTo(nx - nw, -h + nh);
+        s.lineTo(nx + nw, -h + nh);
+        s.lineTo(nx + nw, -h);
+      }
+      s.lineTo(w - r, -h);
+      s.quadraticCurveTo(w, -h, w, -h + r);
+      s.lineTo(w, h - r);
+      s.quadraticCurveTo(w, h, w - r, h);
+      s.lineTo(-w + r, h);
+      s.quadraticCurveTo(-w, h, -w, h - r);
+      s.lineTo(-w, -h + r);
+      s.quadraticCurveTo(-w, -h, -w + r, -h);
+      return s;
+    }
+
+    // Index tab with rounded top corners
+    function tabShape() {
+      const w = 0.16, h = 0.18, r = 0.05;
+      const s = new THREE.Shape();
+      s.moveTo(-w, 0);
+      s.lineTo(w, 0);
+      s.lineTo(w, h - r);
+      s.quadraticCurveTo(w, h, w - r, h);
+      s.lineTo(-w + r, h);
+      s.quadraticCurveTo(-w, h, -w, h - r);
+      s.closePath();
+      return s;
+    }
+
+    const cardGeo = new THREE.ExtrudeGeometry(cardShape(), {
+      depth: CARD_T, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.003, bevelSegments: 1, curveSegments: 6,
+    });
+    cardGeo.translate(0, 0, -CARD_T / 2);
+    const tabGeo = new THREE.ExtrudeGeometry(tabShape(), { depth: CARD_T * 1.6, bevelEnabled: false, curveSegments: 6 });
+    tabGeo.translate(0, -0.06, -CARD_T * 0.8);
+
+    const cards = [];
+    for (let i = 0; i < CARD_COUNT; i++) {
+      const base = (i / CARD_COUNT) * Math.PI * 2;
+      const pivot = new THREE.Group();
+      pivot.rotation.x = base;
+
+      const mat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color().setHSL(0.12, 0.3, 0.88 + Math.random() * 0.03),
+        roughness: 1,
+        envMapIntensity: 0.3,   // matte card stock, only faint studio reflections
+        emissive: 0xffffff,
+        emissiveIntensity: 0,
+      });
+      const card = new THREE.Mesh(cardGeo, mat);
+      card.position.y = CORE_R + CARD_H / 2;
+      card.castShadow = true;
+      card.receiveShadow = true;
+
+      // Small irregularities so the stack doesn't look machine-perfect
+      const jitter = (Math.random() - 0.5) * 0.012;
+      card.position.x = (Math.random() - 0.5) * 0.03;
+      card.rotation.z = (Math.random() - 0.5) * 0.012;
+
+      // Portfolio cards get a blue index tab, staggered along the top edge
+      if (i % CARD_STEP === 0) {
+        const k = i / CARD_STEP;
+        const tab = new THREE.Mesh(tabGeo, tabMat);
+        tab.position.set(-CARD_W / 2 + 0.25 + k * ((CARD_W - 0.5) / (PORTFOLIO_COUNT - 1)), CARD_H / 2, 0);
+        tab.castShadow = true;
+        card.add(tab);
+      }
+
+      pivot.add(card);
+      drum.add(pivot);
+      cards.push({ pivot, card, base, jitter, mat, lift: 0, liftVel: 0 });
+    }
+
+    // Preview image printed on the front of each portfolio card, named after its title
+    // (e.g. "Rear Wing" -> images/previews/rear-wing.png) and fitted inside a margin
+    const PREVIEW_W = CARD_W - 0.3;
+    const PREVIEW_H = CARD_H - 0.34;   // keeps clear of the rail slots along the bottom
+    const textureLoader = new THREE.TextureLoader();
+    document.querySelectorAll('#portfolios .name').forEach((name, k) => {
+      const slug = name.textContent.trim().toLowerCase().replace(/\s+/g, '-');
+      textureLoader.load(`images/previews/${slug}.png`, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        const aspect = tex.image.width / tex.image.height;
+        const w = Math.min(PREVIEW_W, PREVIEW_H * aspect);
+        const preview = new THREE.Mesh(
+          new THREE.PlaneGeometry(w, w / aspect),
+          new THREE.MeshStandardMaterial({
+            map: tex,
+            transparent: true,
+            roughness: 1,
+            envMapIntensity: 0.3,   // matches the matte card stock
+            emissive: 0xffffff,
+            emissiveMap: tex,
+            emissiveIntensity: 0,
+            polygonOffset: true,    // sits on the card face without flickering
+            polygonOffsetFactor: -2,
+            polygonOffsetUnits: -2,
+          }),
+        );
+        preview.position.set(0, 0.04, CARD_T / 2 + 0.003);
+        preview.receiveShadow = true;
+        const c = cards[k * CARD_STEP];
+        c.card.add(preview);
+        c.preview = preview;
+      });
+    });
+
+    const core = new THREE.Mesh(new THREE.CylinderGeometry(CORE_R - 0.03, CORE_R - 0.03, CARD_W + 0.1, 40), greyPlastic);
+    core.rotation.z = Math.PI / 2;
+    drum.add(core);
+
+    for (const x of [-NOTCH_X, NOTCH_X]) {
+      const rail = new THREE.Mesh(new THREE.TorusGeometry(CORE_R + 0.06, 0.04, 16, 96), chrome);
+      rail.rotation.y = Math.PI / 2;
+      rail.position.x = x;
+      drum.add(rail);
+    }
+
+    // Big round black end knob: generously rounded rim and a slightly domed face
+    function knobGeometry() {
+      const r = KNOB_R, t = KNOB_T / 2, b = 0.17, steps = 12;
+      const pts = [new THREE.Vector2(0, -t - 0.03)];
+      for (let k = 0; k <= steps; k++) {
+        const a = -Math.PI / 2 + (k / steps) * (Math.PI / 2);
+        pts.push(new THREE.Vector2(r - b + Math.cos(a) * b, -t + b + Math.sin(a) * b));
+      }
+      for (let k = 0; k <= steps; k++) {
+        const a = (k / steps) * (Math.PI / 2);
+        pts.push(new THREE.Vector2(r - b + Math.cos(a) * b, t - b + Math.sin(a) * b));
+      }
+      pts.push(new THREE.Vector2(0, t + 0.03));
+      const geo = new THREE.LatheGeometry(pts, 128);
+      geo.rotateZ(Math.PI / 2);
+      return geo;
+    }
+
+    const knobGeo = knobGeometry();
+    const ribGeo = new THREE.CapsuleGeometry(0.025, KNOB_T * 0.4, 4, 8).rotateZ(Math.PI / 2);
+    for (const side of [-1, 1]) {
+      const knob = new THREE.Mesh(knobGeo, blackPlastic);
+      knob.position.x = side * KNOB_X;
+      knob.castShadow = true;
+      knob.receiveShadow = true;
+      drum.add(knob);
+
+      // Fine grip ribs moulded around the rim
+      for (let r = 0; r < 36; r++) {
+        const a = (r / 36) * Math.PI * 2;
+        const rib = new THREE.Mesh(ribGeo, blackPlastic);
+        rib.position.set(side * KNOB_X, Math.cos(a) * (KNOB_R - 0.01), Math.sin(a) * (KNOB_R - 0.01));
+        drum.add(rib);
+      }
+
+      // Subtle ring and hub boss on the outer face
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.018, 12, 96), blackPlastic);
+      ring.rotation.y = Math.PI / 2;
+      ring.position.x = side * (KNOB_X + KNOB_T / 2 + 0.015);
+      drum.add(ring);
+
+      const boss = new THREE.Mesh(new THREE.SphereGeometry(0.24, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), blackPlastic);
+      boss.scale.y = 0.35;
+      boss.rotation.z = -side * Math.PI / 2;
+      boss.position.x = side * (KNOB_X + KNOB_T / 2 + 0.02);
+      drum.add(boss);
+    }
+
+    // ---- Static chrome axle and tubular stand ----
+    const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, HUB_X * 2, 16), chrome);
+    axle.rotation.z = Math.PI / 2;
+    model.add(axle);
+
+    // A section of a curve, used for the rubber sleeves on the stand
+    class SubCurve extends THREE.Curve {
+      constructor(curve, from, to) {
+        super();
+        this.curve = curve;
+        this.from = from;
+        this.to = to;
+      }
+      getPoint(t, target = new THREE.Vector3()) {
+        return this.curve.getPoint(this.from + (this.to - this.from) * t, target);
+      }
+    }
+
+    // Collar where the stand meets each knob hub, hiding the joint
+    for (const side of [-1, 1]) {
+      const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.14, 32), chrome);
+      collar.rotation.z = Math.PI / 2;
+      collar.position.x = side * (HUB_X + 0.04);
+      model.add(collar);
+    }
+
+    // One side of a stand loop: straight out of the hub, a smooth bend, then down to the table
+    const armPoints = (side, z) => [
+      new THREE.Vector3(side * (KNOB_X + KNOB_T / 2), 0, 0),
+      new THREE.Vector3(side * (HUB_X + 0.12), 0, 0),
+      new THREE.Vector3(side * (HUB_X + 0.32), -0.12, 0.03 * z),
+      new THREE.Vector3(side * (HUB_X + 0.42), -0.45, 0.1 * z),
+      new THREE.Vector3(side * (HUB_X + 0.36), -1.0, 0.3 * z),
+      new THREE.Vector3(side * (HUB_X + 0.2), -1.65, 0.8 * z),
+      new THREE.Vector3(side * (HUB_X - 0.5), FLOOR_Y, 1.25 * z),
+    ];
+
+    // Two chrome loops run from the knob hubs down to the table, one forward and one back
+    for (const z of [1, -1]) {
+      const loop = new THREE.CatmullRomCurve3(
+        [...armPoints(-1, z), ...armPoints(1, z).reverse()],
+        false,
+        'centripetal',
+      );
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(loop, 240, 0.1, 24), chrome);
+      tube.castShadow = true;
+      tube.receiveShadow = true;
+      model.add(tube);
+
+      for (const [from, to] of [[0.42, 0.48], [0.52, 0.58]]) {
+        const sleeve = new THREE.TubeGeometry(new SubCurve(loop, from, to), 24, 0.13, 24);
+        model.add(new THREE.Mesh(sleeve, rubber));
+
+        // Rounded lip closing each open sleeve end against the chrome tube
+        for (const t of [from, to]) {
+          const lip = new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.017, 12, 48), rubber);
+          lip.position.copy(loop.getPoint(t));
+          lip.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), loop.getTangent(t));
+          model.add(lip);
+        }
+      }
+    }
+
+    // ---- Hover interaction ----
+    // Each portfolio owns one tabbed card, spread evenly around the drum
+    const links = [...document.querySelectorAll('#portfolios a')];
+    const cardFor = (i) => i * CARD_STEP;
+    const slugOf = (link) => link.querySelector('.name').textContent.trim().toLowerCase().replace(/\s+/g, '-');
+
+    const FACE_ANGLE = -0.15;  // card stands upright, leaning back slightly towards the viewer
+    const IDLE_SPEED = 0.15;   // radians per second while nothing is hovered
+    const FRONT_GAP = 1.15;    // how far the cards in front fall away
+    const BACK_GAP = 0.3;      // how far the cards behind lean back
+    const LIFT = 1.1;          // how far the shown card rises out of the drum
+    const LIFT_STIFFNESS = 90; // spring for the rise: lower is slower
+    const LIFT_DAMPING = 11;   // below ~19 the card overshoots slightly before settling
+
+    let activeCard = -1;
+    let partedCard = -1;       // the card the drum is parted around, kept while it closes
+    let drumTarget = 0;
+    let part = 0;              // 0..1, how open the drum is around the active card
+
+    const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+
+    // ---- Click: the card flies out of the drum to fill the screen ----
+    const FLY_STIFFNESS = 70;  // spring for the flight: a touch softer than the lift for the longer trip
+    const FLY_DAMPING = 14;    // gentler than the lift: only a whisper of overshoot (~17 removes it)
+    const FLY_DIST = 4;        // how far in front of the camera the opened card hangs
+    const TAB_UP = 0.12;       // how far the index tab stands above the card's top edge
+
+    let flyCard = -1;          // the card that is out, or flying back
+    let flyTarget = 0;
+    let fly = 0;               // 0 in the drum, 1 filling the screen
+    let flyVel = 0;
+
+    // ---- Timeline: the drum spins very fast, then spits out a plain card holding the timeline ----
+    const TIMELINE_CARD = CARD_STEP / 2;   // an untabbed card halfway between two portfolio cards
+    const SPIN_SPEED = 25;     // radians per second at full spin
+    const SPIN_TIME = 1.4;     // seconds spent spinning before the card comes out
+
+    let spin = 0;              // seconds of spin left
+    let spinSpeed = 0;
+    let timelinePending = false;   // waiting for an open card to get back into the drum first
+
+    // Phones: a tapped card rises out of the drum and shows for this long before it flies out
+    const PHONE_POP_HOLD = 0.35;
+    let phonePop = null;       // { link, card, held }: the tapped card, waiting to rise
+    let popReady = null;       // the link whose card has risen, so its next click flies it out
+
+    const portfolioList = document.getElementById('portfolios');
+    const deactivate = () => {
+      links.forEach((l) => l.classList.remove('active'));
+      activeCard = -1;
+    };
+
+    links.forEach((link, i) => {
+      const activate = () => {
+        if (flyCard >= 0 || spin > 0 || cvTime >= 0 || cvShown || newsTime >= 0 || newsShown) return;   // hold the drum still while a card is out
+        links.forEach((l) => l.classList.toggle('active', l === link));
+        activeCard = cardFor(i);
+        partedCard = activeCard;
+        const desired = FACE_ANGLE - cards[activeCard].base;
+        drumTarget = drum.rotation.x + wrap(desired - drum.rotation.x);
+      };
+      link.addEventListener('mouseenter', activate);
+      link.addEventListener('focus', activate);
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (flyCard >= 0 || spin > 0 || cvTime >= 0 || cvShown || newsTime >= 0 || newsShown) return;
+        activate();
+        // Phones have no hover, so a tap first turns the drum and lets the card rise, as hovering does on
+        // desktop; animate() clicks again once it has shown for PHONE_POP_HOLD
+        if (phoneView.matches && popReady !== link) {
+          phonePop = { link, card: cardFor(i), held: 0 };
+          return;
+        }
+        popReady = null;
+        flyCard = cardFor(i);
+        flyTarget = 1;
+        document.body.classList.add('card-open');
+
+        previews.forEach((p) => p.classList.toggle('current', p.dataset.portfolio === slugOf(link)));
+        previewLayer.scrollTop = 0;   // the phone card always opens at the top
+        previewLayer.querySelector('.preview.current .preview-carousel')?.reset();
+      });
+    });
+
+    portfolioList.addEventListener('mouseleave', () => {
+      if (flyCard < 0 && !gentle) deactivate();   // not mid-way from the timeline to a portfolio
+    });
+
+    // Timeline button: close the menu, send back any open card, then spin
+    function startSpin() {
+      deactivate();
+      spin = SPIN_TIME;
+      spinSpeed = IDLE_SPEED;
+    }
+    function openTimeline() {
+      if (spin > 0 || timelinePending || (flyCard === TIMELINE_CARD && flyTarget === 1)) return;
+      if (flyCard >= 0) {
+        closeCard();
+        timelinePending = true;
+        return;
+      }
+      startSpin();
+    }
+
+    // Burger menu: each button's role (and label) depends on the page. Home has CV, Timeline and
+    // What's new?; the CV page has Home, What's new? and Download CV. What's new? does nothing yet;
+    // Download CV is a real link to the CV's PDF
+    const siteNav = document.getElementById('site-nav');
+    const navLinks = [...siteNav.querySelectorAll('.nav-menu a')];
+    const NAV_LABELS = { home: 'Home', timeline: 'Timeline', news: 'What’s new?', cv: 'CV', download: 'Download CV' };
+    const CV_PDF = 'images/cv/Isabella_Handbury_CV.pdf';
+    function setNav(roles) {
+      navLinks.forEach((a, i) => {
+        a.dataset.nav = roles[i];
+        a.textContent = NAV_LABELS[roles[i]];
+        a.href = roles[i] === 'download' ? CV_PDF : '#';
+        a.toggleAttribute('download', roles[i] === 'download');
+      });
+    }
+    setNav(['cv', 'timeline', 'news']);
+    navLinks.forEach((a) => {
+      a.addEventListener('click', (e) => {
+        const role = a.dataset.nav;
+        siteNav.closeMenu();
+        if (role === 'download') return;   // the browser downloads the PDF
+        e.preventDefault();
+        if (role === 'cv') {
+          closeNews();
+          openCV();
+        }
+        if (role === 'home') {
+          closeCV();
+          closeNews();
+        }
+        if (role === 'timeline') {
+          closeCV();
+          closeNews();
+          openTimeline();
+        }
+        if (role === 'news') {
+          closeCV();
+          openNews();
+        }
+      });
+    });
+
+    // Once the spin ends, coast onto the timeline card and fly it out like a portfolio card.
+    // The coast is about as long as the spin speed carries the drum, so it slows without a jolt
+    function launchTimeline() {
+      activeCard = TIMELINE_CARD;
+      partedCard = activeCard;
+      let d = (FACE_ANGLE - cards[activeCard].base - drum.rotation.x) % (Math.PI * 2);
+      if (d < 0) d += Math.PI * 2;
+      if (d < 2.5) d += Math.PI * 2;
+      drumTarget = drum.rotation.x + d;
+      flyCard = TIMELINE_CARD;
+      flyTarget = 1;
+      document.body.classList.add('card-open');
+      previews.forEach((p) => p.classList.toggle('current', p.dataset.portfolio === 'timeline'));
+      previewLayer.scrollTop = 0;   // the phone card always opens at the top
+    }
+
+    // ---- CV: the drum spins extremely fast and shakes, flings its cards all over the page, then one
+    // last card flies up to fill the screen and the screen becomes the CV page. The drum is only
+    // borrowed: the flying cards are copies, the cards they leave are hidden, and Home puts it all back ----
+    const CV_SPEED = 45;           // radians per second at full spin
+    const CV_SHAKE_AT = 0.6;       // seconds in when the shaking starts...
+    const CV_SHAKE_FULL = 2.0;     // ...and when it is at its strongest
+    const CV_SHAKE = 0.07;         // strongest shake, in world units (and radians for the wobble)
+    const CV_FLING_AT = 1.6;       // cards are flung out between these times
+    const CV_FLING_END = 3.4;
+    const CV_FLING_COUNT = 63;
+    const CV_PREVIEW_SHARE = 0.35; // share of the plain flung cards that carry a portfolio preview
+    const CV_PORTFOLIO_AT = 1.8;   // the portfolio cards come out one by one between these times,
+    const CV_PORTFOLIO_END = 3.0;  // turning to face the viewer so their previews can be seen
+    const CV_PORTFOLIO_GROW = 1.6; // how much bigger they grow as they come forward
+    const CV_FINAL_AT = 3.2;       // the last card leaves the drum...
+    const CV_FINAL_TIME = 1.0;     // ...and takes this long to fill the screen
+    const CV_FINAL_DIST = 2;       // how far in front of the camera it ends up
+    const CV_COLOUR = new THREE.Color('#efd8c7');   // matches .cv-page
+    const cvTimers = [];
+
+    let cvTime = -1;               // seconds since the CV animation started, or -1 when it isn't running
+    let cvSpeed = 0;
+    let cvPending = false;         // waiting for an open card to get back into the drum first
+    let cvShown = false;           // the CV page covers everything, so the rolodex needn't render
+    const cvFlyers = [];
+    const cvHidden = [];           // drum cards hidden while their copies fly
+    let cvFinal = null;
+    let cvPortfolioOrder = [];     // the portfolio cards still to come out, in a random order
+
+    const smooth = (a, b, t) => {
+      const x = Math.min(1, Math.max(0, (t - a) / (b - a)));
+      return x * x * (3 - 2 * x);
+    };
+    const randomUnit = () => new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+
+    function openCV() {
+      if (cvTime >= 0 || cvShown || cvPending || spin > 0 || newsTime >= 0) return;
+      timelinePending = false;
+      portfolioPending = null;
+      flyPending = null;
+      setGentle(false);
+      if (flyCard >= 0) {
+        closeCard();
+        cvPending = true;
+        return;
+      }
+      startCV();
+    }
+
+    function startCV() {
+      deactivate();
+      cvTime = 0;
+      cvSpeed = IDLE_SPEED;
+      cvPortfolioOrder = links.map((l, k) => cardFor(k)).sort(() => Math.random() - 0.5);
+      document.body.classList.add('cv-anim');
+      setNav(['home', 'news', 'download']);
+    }
+
+    function closeCV() {
+      if (cvTime < 0 && !cvShown && !cvPending) return;
+      cvTime = -1;
+      cvShown = false;
+      cvPending = false;
+      cvTimers.forEach(clearTimeout);
+      cvTimers.length = 0;
+      document.body.classList.remove('cv-anim', 'cv-open');
+      // The page stays dark while it fades out (0.4s in .cv-page), then resets for next time
+      cvTimers.push(setTimeout(() => document.body.classList.remove('cv-ready'), 400));
+      endCVFlight();
+      cvHidden.forEach((c) => { c.card.visible = true; });
+      cvHidden.length = 0;
+      drumTarget = drum.rotation.x;
+      setNav(['cv', 'timeline', 'news']);
+    }
+
+    // Clear away the flying cards and settle the stand
+    function endCVFlight() {
+      cvFlyers.forEach((f) => scene.remove(f.mesh));
+      cvFlyers.length = 0;
+      if (cvFinal) {
+        scene.remove(cvFinal.mesh);
+        cvFinal.mesh.material.dispose();
+        cvFinal = null;
+      }
+      model.position.set(0, 0, 0);
+      model.rotation.x = 0;
+      model.rotation.z = 0;
+    }
+
+    // A copy of a drum card (with its tab and preview, if it has them) taking its place, so it can leave the drum
+    function borrowCard(c) {
+      const mesh = c.card.clone();
+      c.card.getWorldPosition(mesh.position);
+      c.card.getWorldQuaternion(mesh.quaternion);
+      c.card.getWorldScale(mesh.scale);
+      c.card.visible = false;
+      cvHidden.push(c);
+      scene.add(mesh);
+      return mesh;
+    }
+    const loose = () => cards.filter((c, i) => i % CARD_STEP !== 0 && c.card.visible);
+
+    // Flung off the spinning drum along its path, outwards, scattered, and partly towards the viewer
+    function flingCard() {
+      const pool = loose();
+      if (!pool.length) return;
+      const c = pool[Math.floor(Math.random() * pool.length)];
+      const mesh = borrowCard(c);
+      // Some carry a portfolio's preview, so the previews show all through the storm
+      const printed = cards[cardFor(Math.floor(Math.random() * PORTFOLIO_COUNT))].preview;
+      if (printed && Math.random() < CV_PREVIEW_SHARE) mesh.add(printed.clone());
+      const axis = new THREE.Vector3(1, 0, 0).applyQuaternion(model.getWorldQuaternion(new THREE.Quaternion()));
+      const radial = mesh.position.clone().sub(model.getWorldPosition(new THREE.Vector3()));
+      radial.addScaledVector(axis, -radial.dot(axis)).normalize();
+      const along = new THREE.Vector3().crossVectors(axis, radial);
+      const toViewer = camera.position.clone().sub(mesh.position).normalize();
+      const vel = along.multiplyScalar(0.8).addScaledVector(radial, 0.6).addScaledVector(toViewer, 0.35)
+        .addScaledVector(randomUnit(), 0.9).normalize().multiplyScalar(6 + Math.random() * 8);
+      cvFlyers.push({ mesh, vel, spinAxis: randomUnit(), spinRate: 4 + Math.random() * 8 });
+    }
+
+    // A portfolio card drifts across the screen towards the viewer, turning to face them (with a slight
+    // tilt) and growing, so its preview reads clearly
+    function flingPortfolio(i) {
+      const c = cards[i];
+      const mesh = borrowCard(c);
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+      const toViewer = camera.position.clone().sub(mesh.position).normalize();
+      const a = Math.random() * Math.PI * 2;
+      const vel = right.multiplyScalar(Math.cos(a)).addScaledVector(up, Math.sin(a) * 0.7)
+        .multiplyScalar(2.5 + Math.random() * 2).addScaledVector(toViewer, 1.2 + Math.random());
+      const tilt = new THREE.Quaternion().setFromEuler(new THREE.Euler((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.6));
+      cvFlyers.push({ mesh, vel, face: camera.quaternion.clone().multiply(tilt), grow: mesh.scale.x * CV_PORTFOLIO_GROW });
+    }
+
+    // The last card: the loose card nearest the viewer, in its own material so it can turn into the
+    // flat page colour as it arrives
+    function startFinal() {
+      let best = null;
+      let bestDist = Infinity;
+      for (const c of loose()) {
+        const d = c.card.getWorldPosition(tmpV).distanceTo(camera.position);
+        if (d < bestDist) {
+          bestDist = d;
+          best = c;
+        }
+      }
+      if (!best) return;
+      const material = best.mat.clone();
+      material.emissive.copy(CV_COLOUR);
+      material.emissiveIntensity = 0;
+      const mesh = borrowCard(best);
+      mesh.material = material;
+      cvFinal = { mesh, colour: material.color.clone(), fromPos: mesh.position.clone(), fromQuat: mesh.quaternion.clone(), fromScale: mesh.scale.x };
+    }
+
+    // Square to the camera in the middle of the screen, big enough to cover all of it with room to spare
+    // for the rounded corners and rail slots
+    function updateFinal() {
+      const p = Math.min(1, (cvTime - CV_FINAL_AT) / CV_FINAL_TIME);
+      const e = p < 0.5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2;
+      const dir = tmpV.set(0, 0, 0.5).unproject(camera).sub(camera.position).normalize();
+      const forward = camera.getWorldDirection(new THREE.Vector3());
+      const to = camera.position.clone().addScaledVector(dir, CV_FINAL_DIST / dir.dot(forward));
+      const viewH = 2 * CV_FINAL_DIST * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+      const s = Math.max((viewH * camera.aspect) / CARD_W, viewH / (CARD_H - 0.3)) * 1.1;
+      const { mesh } = cvFinal;
+      mesh.position.lerpVectors(cvFinal.fromPos, to, e);
+      mesh.quaternion.slerpQuaternions(cvFinal.fromQuat, camera.quaternion, e);
+      mesh.scale.setScalar(cvFinal.fromScale + (s - cvFinal.fromScale) * e);
+      // Over the last half it trades its lit colour for the flat page colour
+      const k = smooth(0.5, 1, p);
+      mesh.material.color.copy(cvFinal.colour).multiplyScalar(1 - k);
+      mesh.material.emissiveIntensity = k;
+      mesh.material.envMapIntensity = 0.3 * (1 - k);
+      return p >= 1;
+    }
+
+    // ---- Collisions so the flying cards knock off each other instead of passing through ----
+    // Each card is a thin box. Two boxes overlap unless some axis separates them (the separating axis
+    // test); when they do overlap, the axis with the least overlap is the way to push them apart
+    const CV_HALF_T = 0.02;        // half thickness used for collisions, a little thicker than the card
+    const CV_BOUNCE = 0.4;         // how much speed survives a knock
+    const CARD_REACH = Math.hypot(CARD_W, CARD_H) / 2;
+    const AXIS_X = new THREE.Vector3(1, 0, 0);
+    const AXIS_Y = new THREE.Vector3(0, 1, 0);
+    const AXIS_Z = new THREE.Vector3(0, 0, 1);
+    const testAxis = new THREE.Vector3();
+    const gap = new THREE.Vector3();
+
+    function boxOf(mesh) {
+      const s = mesh.scale.x;
+      return {
+        c: mesh.position,
+        u: [AXIS_X, AXIS_Y, AXIS_Z].map((a) => a.clone().applyQuaternion(mesh.quaternion)),
+        e: [(CARD_W / 2) * s, (CARD_H / 2) * s, CV_HALF_T * s],
+      };
+    }
+
+    // The push from A to B that separates them, or null if they don't touch
+    function overlap(A, B) {
+      gap.subVectors(B.c, A.c);
+      let depth = Infinity;
+      let normal = null;
+      const axes = [...A.u, ...B.u];
+      for (const a of A.u) for (const b of B.u) axes.push(new THREE.Vector3().crossVectors(a, b));
+      for (const axis of axes) {
+        const len = axis.length();
+        if (len < 1e-6) continue;   // parallel edges give no axis
+        testAxis.copy(axis).divideScalar(len);
+        const ra = A.e[0] * Math.abs(A.u[0].dot(testAxis)) + A.e[1] * Math.abs(A.u[1].dot(testAxis)) + A.e[2] * Math.abs(A.u[2].dot(testAxis));
+        const rb = B.e[0] * Math.abs(B.u[0].dot(testAxis)) + B.e[1] * Math.abs(B.u[1].dot(testAxis)) + B.e[2] * Math.abs(B.u[2].dot(testAxis));
+        const along = gap.dot(testAxis);
+        const pen = ra + rb - Math.abs(along);
+        if (pen <= 0) return null;
+        if (pen < depth) {
+          depth = pen;
+          normal = testAxis.clone().multiplyScalar(along < 0 ? -1 : 1);
+        }
+      }
+      return normal && { depth, normal };
+    }
+
+    // Push touching cards apart and bounce them off each other. The last card is unstoppable:
+    // it shoves the others aside and is never moved itself
+    function collideCV() {
+      const bodies = cvFlyers.map((f) => ({ f, box: boxOf(f.mesh), reach: CARD_REACH * f.mesh.scale.x }));
+      if (cvFinal) bodies.push({ f: null, box: boxOf(cvFinal.mesh), reach: CARD_REACH * cvFinal.mesh.scale.x });
+      for (let i = 0; i < bodies.length; i++) {
+        for (let j = i + 1; j < bodies.length; j++) {
+          const A = bodies[i], B = bodies[j];
+          if (A.box.c.distanceTo(B.box.c) > A.reach + B.reach) continue;   // too far apart to touch
+          const hit = overlap(A.box, B.box);
+          if (!hit) continue;
+          const { depth, normal } = hit;
+          const shareA = !A.f ? 0 : !B.f ? 1 : 0.5;
+          if (A.f) A.f.mesh.position.addScaledVector(normal, -depth * shareA);
+          if (B.f) B.f.mesh.position.addScaledVector(normal, depth * (1 - shareA));
+          // Only bounce if they are closing on each other
+          const vA = A.f ? A.f.vel.dot(normal) : 0;
+          const vB = B.f ? B.f.vel.dot(normal) : 0;
+          if (vB - vA >= 0) continue;
+          const kick = -(1 + CV_BOUNCE) * (vB - vA);
+          if (A.f) A.f.vel.addScaledVector(normal, -kick * shareA);
+          if (B.f) B.f.vel.addScaledVector(normal, kick * (1 - shareA));
+          // A knock sets a tumbling card spinning a new way
+          for (const f of [A.f, B.f]) if (f && !f.face) f.spinAxis.lerp(randomUnit(), 0.5).normalize();
+        }
+      }
+    }
+
+    // ---- CV page: the CV itself, built into the page, opens scrolled to the top each visit ----
+    const cvScroll = document.getElementById('cv-scroll');
+
+    function resetCVPage() {
+      cvScroll.scrollTop = 0;
+    }
+
+    function stepCV(dt) {
+      cvTime += dt;
+      cvSpeed += (CV_SPEED - cvSpeed) * ease(3, dt);
+      drum.rotation.x += cvSpeed * dt;
+      drumTarget = drum.rotation.x;
+
+      // Shaking builds while the drum is at full tilt
+      const shake = CV_SHAKE * smooth(CV_SHAKE_AT, CV_SHAKE_FULL, cvTime);
+      model.position.set((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+      model.rotation.x = (Math.random() - 0.5) * shake;
+      model.rotation.z = (Math.random() - 0.5) * shake;
+
+      const due = Math.round(CV_FLING_COUNT * Math.min(1, Math.max(0, (cvTime - CV_FLING_AT) / (CV_FLING_END - CV_FLING_AT))));
+      while (cvFlyers.filter((f) => !f.face).length < due && loose().length > 1) flingCard();
+      const portfoliosDue = Math.round(PORTFOLIO_COUNT * smooth(CV_PORTFOLIO_AT, CV_PORTFOLIO_END, cvTime));
+      while (PORTFOLIO_COUNT - cvPortfolioOrder.length < portfoliosDue) flingPortfolio(cvPortfolioOrder.pop());
+
+      for (const f of cvFlyers) {
+        f.mesh.position.addScaledVector(f.vel, dt);
+        if (f.face) {
+          f.mesh.quaternion.slerp(f.face, ease(4, dt));
+          f.mesh.scale.setScalar(f.mesh.scale.x + (f.grow - f.mesh.scale.x) * ease(2, dt));
+        } else {
+          f.mesh.rotateOnWorldAxis(f.spinAxis, f.spinRate * dt);
+        }
+      }
+
+      if (!cvFinal && cvTime >= CV_FINAL_AT) startFinal();
+      const finished = cvFinal && updateFinal();
+      collideCV();
+      if (finished) {
+        // The card fills the screen: swap it for the flat CV page, fade the CV in and stop drawing
+        // the rolodex
+        resetCVPage();
+        document.body.classList.add('cv-open', 'cv-ready');
+        cvShown = true;
+        cvTime = -1;
+        endCVFlight();
+      }
+    }
+
+    // ---- What's new?: the drum spins faster than for the timeline, then nine cards come to the front and
+    // hop through the page's 3 × 3 grid in a zig-zag (top row left to right, middle row back, bottom row
+    // across), each stopping one spot short of the card ahead, like solitaire cards after a win. The middle
+    // card then grows to fill the page and the What's new? page fades in over it. Like the CV, the drum is
+    // only borrowed ----
+    const NEWS_SPEED = 70;         // radians per second at full spin (the timeline's is 25)
+    const NEWS_SPIN_TIME = 1.3;    // seconds of spinning before the first card comes out
+    const NEWS_GAP = 0.6;          // seconds between cards leaving the drum
+    const NEWS_COME = 1.2;         // seconds for a card to come from the drum to the top-left spot
+    const NEWS_STEP = 0.5;         // seconds per spot along the zig-zag
+    const NEWS_HOP = 0.05;         // how high a card hops between spots, as a share of the page height
+    const NEWS_DIST = 3;           // how far in front of the camera the cards travel
+    const NEWS_FADE = 0.6;         // seconds for the previews to fade away once the last card lands
+    const NEWS_PAUSE = 0.35;       // seconds between the previews fading and the middle one growing
+    const NEWS_GROW = 0.8;         // seconds to fill the page
+    const NEWS_SNAKE = [0, 1, 2, 5, 4, 3, 6, 7, 8];   // grid cells (row by row) in zig-zag order
+    const NEWS_MIDDLE = 4;         // the card that ends in the middle (zig-zag spot 4 is the middle cell)
+
+    const newsCells = [...document.querySelectorAll('.news-cell')];
+    const newsCards = [];          // { mesh, dealt, from: { pos, quat, scale } }
+    const newsAim = new THREE.Object3D();
+    let newsTime = -1;             // seconds since the animation started, or -1 when it isn't running
+    let newsSpeed = 0;
+    let newsPending = false;       // waiting for an open card to get back into the drum first
+    let newsShown = false;         // the page covers everything, so the rolodex needn't render
+
+    function openNews() {
+      if (newsTime >= 0 || newsShown || newsPending || cvTime >= 0 || spin > 0) return;
+      timelinePending = false;
+      portfolioPending = null;
+      flyPending = null;
+      setGentle(false);
+      if (flyCard >= 0) {
+        closeCard();
+        newsPending = true;
+        return;
+      }
+      startNews();
+    }
+
+    function startNews() {
+      deactivate();
+      newsTime = 0;
+      newsSpeed = IDLE_SPEED;
+      document.body.classList.add('news-anim');
+      setNav(['home', 'cv', 'timeline']);
+      newsDrift = 0;
+      // Start loading the page's photos
+      document.querySelectorAll('#news-page img[data-src]').forEach((img) => {
+        if (!img.src) img.src = img.dataset.src;
+      });
+    }
+
+    function closeNews() {
+      if (newsTime < 0 && !newsShown && !newsPending) return;
+      newsTime = -1;
+      newsShown = false;
+      newsPending = false;
+      newsCards.forEach((n) => scene.remove(n.mesh));
+      newsCards.length = 0;
+      document.body.classList.remove('news-anim', 'news-open', 'news-shown');
+      model.visible = true;
+      cvHidden.forEach((c) => { c.card.visible = true; });
+      cvHidden.length = 0;
+      drumTarget = drum.rotation.x;
+      setNav(['cv', 'timeline', 'news']);
+    }
+
+    // Puts newsAim square to the camera at dist, covering the screen rectangle r exactly (the card is
+    // stretched to the rectangle's shape)
+    function aimAtRect(r, dist) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const perPx = (2 * dist * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / h;
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dir = tmpV.set((cx / w) * 2 - 1, 1 - (cy / h) * 2, 0.5).unproject(camera).sub(camera.position).normalize();
+      const forward = camera.getWorldDirection(new THREE.Vector3());
+      newsAim.position.copy(camera.position).addScaledVector(dir, dist / dir.dot(forward));
+      newsAim.quaternion.copy(camera.quaternion);
+      newsAim.scale.set((r.width * perPx) / CARD_W, (r.height * perPx) / CARD_H, 1);
+    }
+
+    const lerpRect = (a, b, k) => ({
+      left: a.left + (b.left - a.left) * k,
+      top: a.top + (b.top - a.top) * k,
+      width: a.width + (b.width - a.width) * k,
+      height: a.height + (b.height - a.height) * k,
+    });
+    // The card's own shape, centred on the rectangle r: as big as fits inside it, or (cover) the smallest
+    // that covers it, so the cards never stretch whatever the page's shape
+    function cardRect(r, cover) {
+      const pick = cover ? Math.max : Math.min;
+      const k = pick(r.width / CARD_W, r.height / CARD_H);
+      return {
+        left: r.left + (r.width - CARD_W * k) / 2,
+        top: r.top + (r.height - CARD_H * k) / 2,
+        width: CARD_W * k,
+        height: CARD_H * k,
+      };
+    }
+    // Where a dealt card lands: spot j (row by row) of a 3 × 3 grid that fits wholly on the page, with
+    // NEWS_SPOT_GAP of the page's width around and between the spots, so the cards stay in view and never
+    // overlap; each card is as big as fits in its spot
+    const NEWS_SPOT_GAP = 0.03;
+    function newsSpot(j) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const g = NEWS_SPOT_GAP * w;
+      const cw = (w - 4 * g) / 3;
+      const ch = (h - 4 * g) / 3;
+      return cardRect({ left: g + (j % 3) * (cw + g), top: g + Math.floor(j / 3) * (ch + g), width: cw, height: ch });
+    }
+    const easeInOut = (p) => (p < 0.5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2);
+
+    // The next card leaves the drum
+    function dealNewsCard() {
+      const pool = loose();
+      if (!pool.length) return;
+      const c = pool[Math.floor(Math.random() * pool.length)];
+      const mesh = borrowCard(c);
+      // Each carries a different portfolio's preview, with its own material so it can fade away
+      const printed = cards[cardFor(newsCards.length % PORTFOLIO_COUNT)].preview;
+      let print = null;
+      if (printed) {
+        print = printed.clone();
+        print.material = printed.material.clone();
+        mesh.add(print);
+      }
+      const n = {
+        mesh,
+        print,
+        dealt: NEWS_SPIN_TIME + newsCards.length * NEWS_GAP,
+        from: { pos: mesh.position.clone(), quat: mesh.quaternion.clone(), scale: mesh.scale.clone() },
+      };
+      newsCards.push(n);
+    }
+
+    function stepNews(dt) {
+      newsTime += dt;
+      newsSpeed += (NEWS_SPEED - newsSpeed) * ease(4, dt);
+      drum.rotation.x += newsSpeed * dt;
+      drumTarget = drum.rotation.x;
+
+      while (newsCards.length < 9 && newsTime >= NEWS_SPIN_TIME + newsCards.length * NEWS_GAP) dealNewsCard();
+
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const landed = NEWS_SPIN_TIME + NEWS_COME + 8 * Math.max(NEWS_GAP, NEWS_STEP);
+      const fadedAt = landed + NEWS_FADE;
+      const growAt = fadedAt + NEWS_PAUSE;
+      const fullAt = growAt + NEWS_GROW;
+      // How far the middle card has grown towards covering the page (a little past its edges)
+      const grow = smooth(growAt, fullAt, newsTime);
+      const cover = cardRect({ left: -0.03 * w, top: -0.03 * h, width: 1.06 * w, height: 1.1 * h }, true);
+
+      newsCards.forEach((n, i) => {
+        const t = newsTime - n.dealt;
+        if (t < NEWS_COME) {
+          // Coming out of the drum to the top-left spot, turning to face the viewer
+          aimAtRect(newsSpot(NEWS_SNAKE[0]), NEWS_DIST);
+          const e = easeInOut(Math.max(0, t) / NEWS_COME);
+          n.mesh.position.lerpVectors(n.from.pos, newsAim.position, e);
+          n.mesh.quaternion.slerpQuaternions(n.from.quat, newsAim.quaternion, e);
+          n.mesh.scale.lerpVectors(n.from.scale, newsAim.scale, e);
+          return;
+        }
+        // Along the zig-zag, hopping from spot to spot, until it reaches its own
+        const s = Math.min((t - NEWS_COME) / NEWS_STEP, 8 - i);
+        const a = Math.floor(s);
+        const f = s - a;
+        const r = lerpRect(newsSpot(NEWS_SNAKE[a]), newsSpot(NEWS_SNAKE[Math.min(a + 1, 8)]), f);
+        r.top -= Math.sin(f * Math.PI) * NEWS_HOP * h;
+        if (i === NEWS_MIDDLE && grow > 0) {
+          aimAtRect(lerpRect(r, cover, grow), NEWS_DIST - 0.4 * Math.min(1, grow * 5));   // in front of the rest
+        } else {
+          aimAtRect(r, NEWS_DIST);
+        }
+        n.mesh.position.copy(newsAim.position);
+        n.mesh.quaternion.copy(newsAim.quaternion);
+        n.mesh.scale.copy(newsAim.scale);
+      });
+
+      // Once every card has landed, the previews fade away before the middle card grows
+      const printShown = 1 - smooth(landed, fadedAt, newsTime);
+      // (hidden once gone, or the see-through preview still blocks the photo wall behind it)
+      newsCards.forEach((n) => {
+        if (!n.print) return;
+        n.print.material.opacity = printShown;
+        n.print.visible = printShown > 0;
+      });
+
+      // Once the card covers the page, the What's new? page fades in over it: the photos first, then the
+      // M/FW panel and the labels, then the text (the delays are in the CSS). The rolodex stops rendering,
+      // so the full-screen card stays behind the fade. On phones it waits for the model wall, the photo
+      // that fills the screen, to finish loading, so it only ever appears once, sharp
+      const wallReady = !phoneView.matches || newsScreens[0].complete;
+      if (newsTime >= fullAt && wallReady) {
+        sizeNewsText();
+        document.body.classList.add('news-open', 'news-shown');
+        newsCards.forEach((n) => {
+          scene.remove(n.mesh);
+          if (n.print) n.print.material.dispose();
+        });
+        newsCards.length = 0;
+        newsTime = -1;
+        newsShown = true;
+      }
+    }
+
+    // ---- What's new? photo track: once the page has settled, the eight outer photos slide steadily
+    // anticlockwise round the ring of outer cells, like a belt seen through windows: they stay the size of
+    // a cell (so their zoom never changes) and pass behind a still brown grid ----
+    const NEWS_RING = [0, 3, 6, 7, 8, 5, 2, 1];   // outer cells (row by row) in anticlockwise order
+    const NEWS_DRIFT_WAIT = 3.2;   // seconds after the page starts fading in before the photos start moving
+    const NEWS_DRIFT_STEP = 7.5;   // seconds for a photo to move one spot along
+    const newsTrack = document.getElementById('news-track');
+    // Phones: every photo end to end in one column, starting from the model wall, twice over so it can loop.
+    // The model walls fill the screen (the card hands over to the first), the rest are whole at full width
+    const newsColumn = document.getElementById('news-column');
+    const newsPageEl = document.getElementById('news-page');
+    const newsOrder = [4, 5, 6, 7, 8, 0, 1, 2, 3].map((c) => newsCells[c].querySelector('img'));
+    const newsScreens = [];
+    for (let k = 0; k < 2; k++) {
+      newsOrder.forEach((img, j) => {
+        const copy = newsColumn.appendChild(img.cloneNode());
+        copy.removeAttribute('style');
+        copy.alt = '';
+        if (j === 0) {
+          copy.className = 'news-screen';
+          newsScreens.push(copy);
+        }
+      });
+    }
+    const newsRingImgs = NEWS_RING.map((c) => newsTrack.appendChild(newsCells[c].querySelector('img')));
+    let newsDrift = 0;             // seconds since the page settled
+    // The brown gaps (two across, two down), drawn over the sliding photos
+    const newsBars = [0, 1, 2, 3].map(() => {
+      const bar = newsTrack.appendChild(document.createElement('div'));
+      bar.className = 'news-bar';
+      return bar;
+    });
+
+    function stepNewsTrack(dt) {
+      if (newsShown) newsDrift += dt;
+      const s = Math.max(0, newsDrift - NEWS_DRIFT_WAIT) / NEWS_DRIFT_STEP;
+      // Phones: the column drifts up a screen's width every NEWS_DRIFT_STEP, looping once one set has passed
+      if (phoneView.matches) {
+        newsScreens.forEach((img) => { img.style.height = `${newsPageEl.clientHeight}px`; });
+        const loop = newsColumn.scrollHeight / 2;
+        newsColumn.style.transform = loop ? `translateY(${-((s * window.innerWidth) % loop)}px)` : '';
+        return;
+      }
+      const spots = NEWS_RING.map((c) => newsCells[c].getBoundingClientRect());
+      const place = (el, left, top, width, height) => Object.assign(el.style, {
+        left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px`,
+      });
+
+      const mid = newsCells[4].getBoundingClientRect();
+      const first = newsCells[0].getBoundingClientRect();
+      const last = newsCells[8].getBoundingClientRect();
+      place(newsBars[0], 0, first.bottom, window.innerWidth, mid.top - first.bottom);
+      place(newsBars[1], 0, mid.bottom, window.innerWidth, last.top - mid.bottom);
+      place(newsBars[2], first.right, 0, mid.left - first.right, window.innerHeight);
+      place(newsBars[3], mid.right, 0, last.left - mid.right, window.innerHeight);
+
+      newsRingImgs.forEach((img, k) => {
+        const a = Math.floor(k + s);
+        const r = lerpRect(spots[a % 8], spots[(a + 1) % 8], k + s - a);
+        place(img, r.left, r.top, r.width, r.height);
+      });
+    }
+
+    // The preview fades in once the card has landed, and out before it flies back
+    const previewLayer = document.getElementById('preview-layer');
+    const previews = [...previewLayer.querySelectorAll('.preview')];
+
+    // Slide carousels: click the slide for the next one (looping back to the first),
+    // or jump with the dots underneath; the arrow keys work while the card is open
+    // A small copy of a slide's pixels (200 px wide), kept once read, for the arrows to check
+    // what's under them. Null until the image has loaded, or if the browser won't share its pixels
+    const samples = new Map();
+    function slideSample(img) {
+      if (!img.naturalWidth) return null;
+      if (!samples.has(img)) {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 200;
+          canvas.height = Math.max(1, Math.round(200 * img.naturalHeight / img.naturalWidth));
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          samples.set(img, ctx.getImageData(0, 0, canvas.width, canvas.height));
+        } catch {
+          samples.set(img, null);
+        }
+      }
+      return samples.get(img);
+    }
+
+    previewLayer.querySelectorAll('.preview-carousel').forEach((carousel) => {
+      const slides = [...carousel.querySelectorAll('img')];
+      const dots = document.createElement('div');
+      dots.className = 'carousel-dots';
+      slides.forEach((slide, n) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `Show image ${n + 1} of ${slides.length}`);
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          show(n);
+        });
+        dots.append(dot);
+      });
+      carousel.append(dots);
+
+      // < and > at the slide's sides step back and forward
+      const arrows = [['prev', -1, 'Previous image', 'M14 4 L6 12 L14 20'], ['next', 1, 'Next image', 'M6 4 L14 12 L6 20']]
+        .map(([name, by, label, path]) => {
+          const arrow = document.createElement('button');
+          arrow.type = 'button';
+          arrow.className = `carousel-arrow ${name}`;
+          arrow.setAttribute('aria-label', label);
+          arrow.innerHTML = `<svg viewBox="0 0 20 24" aria-hidden="true"><path d="${path}"/></svg>`;
+          arrow.addEventListener('click', (e) => {
+            e.stopPropagation();
+            show(index + by);
+          });
+          if (slides.length > 1) carousel.append(arrow);
+          return arrow;
+        });
+      slides.forEach((s) => s.addEventListener('load', () => { if (s === slides[index]) shadeArrows(); }));
+
+      let index = 0;
+      function show(n) {
+        index = (n + slides.length) % slides.length;
+        slides.forEach((s, k) => s.classList.toggle('current', k === index));
+        [...dots.children].forEach((d, k) => d.classList.toggle('current', k === index));
+        shadeArrows();
+      }
+
+      // Each arrow turns white when what's under it is mostly dark: the slide's pixels where the
+      // picture reaches, the card's light colour where it doesn't (the slide is fitted, not cropped)
+      function shadeArrows() {
+        const slide = slides[index];
+        const sample = slideSample(slide);
+        const bw = slide.offsetWidth, bh = slide.offsetHeight;
+        for (const arrow of arrows) {
+          let total = 0, count = 0;
+          if (sample && bw && bh) {
+            const fit = Math.min(bw / slide.naturalWidth, bh / slide.naturalHeight);
+            const ox = (bw - slide.naturalWidth * fit) / 2, oy = (bh - slide.naturalHeight * fit) / 2;
+            const k = sample.width / slide.naturalWidth;   // slide pixels to sample pixels
+            for (let y = 0; y < 8; y++) {
+              for (let x = 0; x < 8; x++) {
+                const px = Math.floor((arrow.offsetLeft + (x + 0.5) * arrow.offsetWidth / 8 - ox) / fit * k);
+                const py = Math.floor((arrow.offsetTop + (y + 0.5) * arrow.offsetHeight / 8 - oy) / fit * k);
+                const inside = px >= 0 && py >= 0 && px < sample.width && py < sample.height;
+                const i = (py * sample.width + px) * 4;
+                total += inside && sample.data[i + 3] > 128
+                  ? 0.299 * sample.data[i] + 0.587 * sample.data[i + 1] + 0.114 * sample.data[i + 2]
+                  : 220;   // the card
+                count++;
+              }
+            }
+          }
+          arrow.classList.toggle('on-dark', count > 0 && total / count < 128);
+        }
+      }
+      carousel.addEventListener('click', () => show(index + 1));
+      carousel.step = (by) => show(index + by);
+      carousel.shade = shadeArrows;
+      carousel.reset = () => {
+        // The card is opening, so load its slides now rather than leaving it to lazy loading,
+        // which can skip images inside the hidden, clipped preview layer
+        slides.forEach((s) => {
+          s.loading = 'eager';
+          if (s.complete && !s.naturalWidth) s.src = s.src;   // retry one that already failed
+        });
+        show(0);
+      };
+      show(0);
+    });
+    // Timeline card: the line drawn with a gap inside each node, and each node sending this card
+    // back for its portfolio's
+    const tlItems = [...previewLayer.querySelectorAll('.tl-item')];
+    const tlStops = [];
+    let tlFrom = '0%';
+    tlItems.map((item) => item.style.getPropertyValue('--x'))
+      .sort((a, b) => parseFloat(a) - parseFloat(b))
+      .forEach((x) => {
+        tlStops.push(`#000 ${tlFrom}`, `#000 calc(${x} - 1.45em)`, `transparent calc(${x} - 1.45em)`);
+        tlFrom = `calc(${x} + 1.45em)`;
+        tlStops.push(`transparent ${tlFrom}`);
+      });
+    tlStops.push(`#000 ${tlFrom}`, '#000 calc(99.1% - 1.35em)', 'transparent calc(99.1% - 1.35em)');
+    previewLayer.querySelector('.tl-line').style.background = `linear-gradient(to right, ${tlStops.join(', ')})`;
+
+    // Each stem runs on past the empty edge of its image until it meets the drawing: scan up (or down)
+    // the image's transparent pixels at the stem's position for the first solid one
+    const emOf = (item, name) => parseFloat(item.style.getPropertyValue(name));
+    tlItems.forEach((item) => {
+      const img = item.querySelector('img');
+      const reach = () => {
+        const w = img.naturalWidth, h = img.naturalHeight;
+        const scan = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+        scan.canvas.width = w;
+        scan.canvas.height = h;
+        scan.drawImage(img, 0, 0);
+        const x = Math.min(w - 5, Math.max(0, Math.round((-emOf(item, '--dx') / emOf(item, '--w')) * w) - 2));
+        const alpha = scan.getImageData(x, 0, 5, h).data;
+        const up = item.classList.contains('up');
+        for (let n = 0; n < h; n++) {
+          const row = up ? h - 1 - n : n;
+          for (let k = 0; k < 5; k++) {
+            if (alpha[(row * 5 + k) * 4 + 3] > 60) {
+              item.style.setProperty('--reach', `${(n / h) * emOf(item, '--h')}em`);
+              return;
+            }
+          }
+        }
+      };
+      if (img.complete && img.naturalWidth) reach();
+      else img.addEventListener('load', reach, { once: true });
+    });
+
+    // Going from the timeline to a portfolio runs slower than usual: the timeline card returns, the drum
+    // turns to the portfolio's card, and only then does that card come out
+    const GENTLE = 1.6;            // how many times longer each step takes on this trip
+    let gentle = false;
+    function setGentle(on) {
+      gentle = on;
+      document.body.classList.toggle('tl-trip', on);
+    }
+    let portfolioPending = null;   // the portfolio to turn to once the timeline card is back in the drum
+    let flyPending = null;         // the portfolio whose card comes out once the drum has turned to it
+    tlItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        portfolioPending = links.find((l) => slugOf(l) === item.dataset.portfolio);
+        setGentle(true);
+        closeCard();
+      });
+    });
+
+    const PREVIEW_FADE = 150;  // ms the preview takes to fade before the card leaves
+    const phoneView = matchMedia('(max-width: 700px)');   // matches the CSS phone layout
+    let closing = 0;
+
+    // Grow or shrink the preview text until it runs the full height of the card
+    let fittedFor = '';
+    function fitPreviewText() {
+      const text = previewLayer.querySelector('.preview.current .preview-text');
+      if (!text) return;
+      const key = `${previewLayer.style.width}|${previewLayer.style.height}|${text.parentElement.dataset.portfolio}`;
+      if (key === fittedFor) return;
+      fittedFor = key;
+      fillHeight(text);
+    }
+    function fillHeight(text) {
+      let lo = 0.5, hi = 3;
+      for (let k = 0; k < 14; k++) {
+        const mid = (lo + hi) / 2;
+        text.style.fontSize = `${mid}em`;
+        if (text.scrollHeight <= text.clientHeight) lo = mid;
+        else hi = mid;
+      }
+      text.style.fontSize = `${lo}em`;
+    }
+    document.fonts.ready.then(() => { fittedFor = ''; });   // refit once Hind Vadodara arrives
+
+    // The What's new? text is the same size as a portfolio preview's: an unseen copy of the Oranges preview
+    // is laid out at the size an opened card would be, fitted the same way, and its text size copied
+    // (made NEWS_TEXT_SCALE times bigger so the panel's text fills its space)
+    const NEWS_TEXT_SCALE = 1.1;
+    const newsText = document.querySelector('.news-text');
+    function sizeNewsText() {
+      newsText.style.fontSize = '';
+      if (phoneView.matches) return;   // phones use the phone card's text size, set in the CSS
+      flyPose();
+      const probe = document.createElement('div');
+      probe.className = 'preview-layer';
+      Object.assign(probe.style, {
+        left: '0', top: '0', visibility: 'hidden',
+        width: `${flyBox.width}px`, height: `${flyBox.height}px`, fontSize: `${flyBox.width / 80}px`,
+      });
+      const copy = previewLayer.querySelector('.preview[data-portfolio="orange"]').cloneNode(true);
+      copy.querySelectorAll('.preview-carousel img').forEach((img) => img.remove());   // keeps its column
+      copy.classList.add('current');
+      probe.appendChild(copy);
+      document.body.appendChild(probe);
+      const text = copy.querySelector('.preview-text');
+      fillHeight(text);
+      const size = parseFloat(getComputedStyle(text).fontSize) * NEWS_TEXT_SCALE;
+      probe.remove();
+      // Where the panel is roomier than the card (middle-sized pages) it grows until it fills NEWS_TEXT_FILL
+      // of its box, and on wide, short pages it shrinks until it all fits under M/FW
+      const fit = (share) => newsFit(newsText.clientHeight * share);
+      newsText.style.fontSize = `${Math.min(Math.max(size, fit(NEWS_TEXT_FILL)), fit(1))}px`;
+    }
+    const NEWS_TEXT_FILL = 0.8;
+    // The largest text size (px) whose paragraph is no taller than the given height
+    function newsFit(height) {
+      const p = newsText.firstElementChild;
+      let lo = 6, hi = 80;
+      for (let k = 0; k < 14; k++) {
+        const mid = (lo + hi) / 2;
+        newsText.style.fontSize = `${mid}px`;
+        if (p.offsetHeight <= height) lo = mid;
+        else hi = mid;
+      }
+      return lo;
+    }
+
+    // Phones: "October 2026" and the M/FW panel move out of their grid cells to sit still in the middle of
+    // the page, over the drifting column; wider pages put them back
+    const newsMonth = document.querySelector('.news-month');
+    const newsPanel = document.querySelector('.news-panel');
+    const newsMonthHome = newsMonth.parentElement;
+    const newsPanelHome = newsPanel.parentElement;
+    function placeNewsWords() {
+      if (phoneView.matches) {
+        document.getElementById('news-phone-words').append(newsMonth, newsPanel);
+      } else {
+        newsMonthHome.append(newsMonth);
+        newsPanelHome.append(newsPanel);
+      }
+      if (newsShown) sizeNewsText();
+    }
+    placeNewsWords();
+    phoneView.addEventListener('change', placeNewsWords);
+
+    // Clip the layer to the card's outline (rounded corners and the two rail slots),
+    // traced the same way as cardShape() but in screen pixels
+    let clippedFor = '';
+    function clipPreviewLayer(box) {
+      const key = `${box.width}|${box.height}`;
+      if (key === clippedFor) return;
+      clippedFor = key;
+      const k = box.width / CARD_W;   // pixels per card unit
+      const W = box.width, H = box.height, r = 0.09 * k, nw = 0.12 * k, nh = 0.12 * k;
+      let d = `M ${r} 0 H ${W - r} Q ${W} 0 ${W} ${r} V ${H - r} Q ${W} ${H} ${W - r} ${H}`;
+      for (const nx of [NOTCH_X, -NOTCH_X]) {
+        const cx = W / 2 + nx * k;
+        d += ` H ${cx + nw} V ${H - nh} H ${cx - nw} V ${H}`;
+      }
+      d += ` H ${r} Q 0 ${H} 0 ${H - r} V ${r} Q 0 0 ${r} 0 Z`;
+      previewLayer.style.clipPath = `path('${d}')`;
+    }
+
+    // Clicking anywhere else, or Escape, sends the card back into the drum
+    const closeCard = () => {
+      if (flyCard < 0 || flyTarget === 0 || closing) return;
+      previewLayer.classList.remove('shown');
+      tabLabel.classList.remove('shown');
+      document.body.classList.remove('card-open');
+      closing = setTimeout(() => {
+        closing = 0;
+        flyTarget = 0;
+      }, previewLayer.querySelector('.preview.current') ? PREVIEW_FADE : 0);
+    };
+    previewLayer.addEventListener('click', (e) => e.stopPropagation());   // clicks on the card keep it open
+
+    // "See More" on the opened card's index tab; it will open the full portfolio
+    const tabLabel = document.getElementById('tab-label');
+    const TAB_HALF_W = 0.16;   // matches tabShape()
+    tabLabel.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const slug = previewLayer.querySelector('.preview.current')?.dataset.portfolio;
+      if (slug && showFull(slug)) history.pushState({ full: slug }, '', '#' + slug);
+    });
+
+    // Full portfolio: the preview's data-full PDF drawn page by page with PDF.js, each page
+    // rendered only as it scrolls near the screen. The X in the burger's place closes it again
+    const fullView = document.getElementById('portfolio-full');
+    const fullPages = document.getElementById('portfolio-pages');
+    const fullClose = document.getElementById('full-close');
+    const pdfDocs = {};
+    let fullSrc = '';
+    let pageObserver = null;
+    async function openFull(src) {
+      document.body.classList.add('full-open');
+      if (src === fullSrc) return shadeFullClose();
+      fullSrc = src;
+      fullPages.replaceChildren();
+      fullView.scrollTop = 0;
+      shadeFullClose();
+      pageObserver?.disconnect();
+      const pdfjs = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.mjs');
+      pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
+      pdfDocs[src] ??= pdfjs.getDocument(src).promise;
+      const pdf = await pdfDocs[src];
+      if (src !== fullSrc) return;
+      pageObserver = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          pageObserver.unobserve(entry.target);
+          entry.target.draw();
+        }
+      }, { root: fullView, rootMargin: '1200px 0px' });
+      for (let n = 1; n <= pdf.numPages; n++) {
+        const page = await pdf.getPage(n);
+        if (src !== fullSrc) return;
+        const base = page.getViewport({ scale: 1 });
+        const canvas = document.createElement('canvas');
+        canvas.width = base.width;
+        canvas.height = base.height;   // sized now so the scroll length is right before drawing
+        canvas.draw = () => {
+          const scale = Math.min(1000, fullPages.clientWidth) * Math.min(devicePixelRatio, 2) / base.width;
+          const viewport = page.getViewport({ scale });
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise.then(shadeFullClose);
+        };
+        fullPages.append(canvas);
+        pageObserver.observe(canvas);
+      }
+    }
+    function closeFull() {
+      document.body.classList.remove('full-open');
+    }
+
+    // The X turns black while a light part of a page is under it, and white over the dark backdrop
+    // or a dark part of a page. It checks the page's pixel under its centre as the pages scroll and draw in
+    function shadeFullClose() {
+      const r = fullClose.getBoundingClientRect();
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      let light = false;
+      for (const canvas of fullPages.children) {
+        const c = canvas.getBoundingClientRect();
+        if (x < c.left || x >= c.right || y < c.top || y >= c.bottom) continue;
+        const [red, green, blue, alpha] = canvas.getContext('2d').getImageData(
+          Math.floor((x - c.left) * canvas.width / c.width), Math.floor((y - c.top) * canvas.height / c.height), 1, 1).data;
+        light = alpha > 128 && 0.299 * red + 0.587 * green + 0.114 * blue > 128;   // undrawn pages count as dark
+        break;
+      }
+      fullClose.classList.toggle('on-light', light);
+    }
+    let shadeQueued = false;
+    fullView.addEventListener('scroll', () => {
+      if (shadeQueued) return;
+      shadeQueued = true;
+      requestAnimationFrame(() => {
+        shadeQueued = false;
+        shadeFullClose();
+      });
+    });
+
+    // The full portfolio is a step in the browser's history (…/#<slug>), so the back button closes it
+    // and returns to the open card, and a link to …/#<slug> opens that portfolio straight away
+    function showFull(slug) {
+      const preview = previews.find((p) => p.dataset.portfolio === slug);
+      if (!preview?.dataset.full) return false;
+      if (flyCard < 0) links.find((l) => slugOf(l) === slug)?.click();   // fly its card out behind it
+      openFull(preview.dataset.full);
+      return true;
+    }
+    // The X, clicking off the pages and Escape step back through the history, which closes it
+    function leaveFull() {
+      if (history.state?.full) history.back();
+      else closeFull();
+    }
+    addEventListener('popstate', () => {
+      const slug = location.hash.slice(1);
+      if (slug && showFull(slug)) {
+        if (!history.state) history.replaceState({ full: slug }, '', '#' + slug);   // typed in by hand
+      } else {
+        closeFull();
+      }
+    });
+
+    fullClose.addEventListener('click', leaveFull);
+    // Clicking anywhere around the pages closes it too
+    fullView.addEventListener('click', (e) => {
+      if (!e.target.closest('canvas')) leaveFull();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (document.body.classList.contains('full-open')) return;   // the card waits behind the full portfolio
+      if (!e.target.closest('#site-nav')) closeCard();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (document.body.classList.contains('full-open')) {
+        if (e.key === 'Escape') leaveFull();
+        return;
+      }
+      if (e.key === 'Escape') closeCard();
+      const carousel = previewLayer.classList.contains('shown') && previewLayer.querySelector('.preview.current .preview-carousel');
+      if (carousel && e.key === 'ArrowRight') carousel.step(1);
+      if (carousel && e.key === 'ArrowLeft') carousel.step(-1);
+    });
+
+    // Opened from a link to …/#<slug>: put the home page under it in the history, then open it
+    const startSlug = location.hash.slice(1);
+    if (previews.some((p) => p.dataset.portfolio === startSlug && p.dataset.full)) {
+      history.replaceState(null, '', location.pathname + location.search);
+      history.pushState({ full: startSlug }, '', '#' + startSlug);
+      showFull(startSlug);
+    }
+
+    // Line the site title's first letter up with the left edge of the portfolio titles' letters,
+    // allowing for the larger side spacing built into the bigger glyphs
+    const siteTitle = document.querySelector('.site-title');
+    const measure = document.createElement('canvas').getContext('2d');
+    function inkLeft(el) {
+      const s = getComputedStyle(el);
+      measure.font = `${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
+      return -measure.measureText(el.textContent.trim()[0]).actualBoundingBoxLeft;
+    }
+    function alignTitle() {
+      const names = [...document.querySelectorAll('#portfolios .name')];
+      const edge = Math.min(...names.map((n) => n.getBoundingClientRect().left + inkLeft(n)));
+      siteTitle.style.left = `${edge - inkLeft(siteTitle)}px`;
+    }
+
+    const PHONE_MODEL_W = 1.05;   // phones: the rolodex's width, as a share of the page's
+    const PHONE_MODEL_Y = 0.42;   // phones: where its middle sits, as a share of the page's height
+    let restBox = null;
+    function resize() {
+      // Phones: "Selected Portfolios" and the titles are centred up and down the screen, but never higher
+      // than just under the site title (the same gap above "Selected Portfolios" as below it)
+      const heading = portfolioList.querySelector('.portfolios-heading');
+      portfolioList.style.top = phoneView.matches
+        ? `${Math.max(siteTitle.getBoundingClientRect().bottom + parseFloat(getComputedStyle(heading).marginBottom),
+            (window.innerHeight - portfolioList.offsetHeight) / 2)}px`
+        : '';
+      alignTitle();
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const narrow = w < 700;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.lookAt(0, -0.2, 0);
+      camera.clearViewOffset();
+      model.updateMatrixWorld();
+
+      // The model's box on screen (in pixels, before any view offset) with the camera at distance z,
+      // a lifted card included. The box is measured once, at rest on first load, so a card flown out or
+      // the drum mid-spin never changes the model's size or place while the page is resized
+      if (!restBox) {
+        restBox = new THREE.Box3().setFromObject(model, true);   // true: from the actual corners, not loose boxes
+        restBox.max.y += LIFT * model.scale.y;
+      }
+      const modelBox = restBox;
+      function screenBox(z) {
+        camera.position.z = z;
+        camera.updateMatrixWorld();
+        camera.updateProjectionMatrix();
+        const box = { l: Infinity, r: -Infinity, t: Infinity, b: -Infinity };
+        for (const x of [modelBox.min.x, modelBox.max.x]) {
+          for (const y of [modelBox.min.y, modelBox.max.y]) {
+            for (const z2 of [modelBox.min.z, modelBox.max.z]) {
+              const p = new THREE.Vector3(x, y, z2).project(camera);
+              const px = ((p.x + 1) / 2) * w, py = ((1 - p.y) / 2) * h;
+              box.l = Math.min(box.l, px); box.r = Math.max(box.r, px);
+              box.t = Math.min(box.t, py); box.b = Math.max(box.b, py);
+            }
+          }
+        }
+        return box;
+      }
+      // The camera distance at which the model's box just fits within maxW by maxH pixels. With
+      // grow false it only ever moves back from z, so the model never gets bigger than at z
+      function fitDistance(z, maxW, maxH, grow) {
+        for (let i = 0; i < 4; i++) {
+          const box = screenBox(z);
+          const k = Math.max((box.r - box.l) / maxW, (box.b - box.t) / maxH);
+          z *= grow ? k : Math.max(1, k);
+        }
+        return z;
+      }
+
+      if (narrow) {
+        // Phone: as wide as PHONE_MODEL_W of the page, centred at PHONE_MODEL_Y of its height, so it sits
+        // lower and overlaps the top portfolio titles (it is drawn behind them). It never gets so tall that
+        // a lifted card would pop up past the site title
+        const top = siteTitle.getBoundingClientRect().bottom + 8;
+        const centreY = Math.max(PHONE_MODEL_Y * h, top + 0.2 * w);
+        const box = screenBox(fitDistance(9.5, PHONE_MODEL_W * w, 2 * (centreY - top), true));
+        camera.setViewOffset(w, h, (box.l + box.r) / 2 - w / 2, (box.t + box.b) / 2 - centreY, w, h);
+        camera.updateProjectionMatrix();
+        return;
+      }
+
+      // Desktop: the model keeps its size until it would fill 92% of the page width, then shrinks with
+      // it. It is centred at 57.5% of the page width (kept on screen) and dropped so the bottom of the
+      // stand lines up with the top of the last portfolio title
+      const fitted = screenBox(fitDistance(9.5, 0.92 * w, Infinity, false));
+      const half = (fitted.r - fitted.l) / 2;
+      const centreX = Math.min(Math.max(0.575 * w, half + 0.04 * w), w - half - 0.04 * w);
+
+      let standBottom = 0;
+      for (const x of [-1, 1]) {
+        for (const z of [-1, 1]) {
+          const p = model.localToWorld(new THREE.Vector3(x * (HUB_X - 0.5), FLOOR_Y - 0.13, z * 1.25));
+          p.project(camera);
+          standBottom = Math.max(standBottom, ((1 - p.y) / 2) * h);
+        }
+      }
+      const lastTitle = links[links.length - 1].getBoundingClientRect().top;
+
+      camera.setViewOffset(w, h, (fitted.l + fitted.r) / 2 - centreX, standBottom - lastTitle, w, h);
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    window.addEventListener('resize', () => { if (newsShown) sizeNewsText(); });
+    resize();
+    document.fonts.ready.then(resize);   // titles shift once the web font loads
+
+    // Where the opened card sits: square to the camera, centred, and as large as fits
+    // between the site title and the bottom of the page, tab included
+    const flyWorld = new THREE.Matrix4();
+    const flyLocal = new THREE.Matrix4();
+    const flyPos = new THREE.Vector3();
+    const flyQuat = new THREE.Quaternion();
+    const flyScale = new THREE.Vector3();
+    const restPos = new THREE.Vector3();
+    const restScale = new THREE.Vector3();
+    const tmpV = new THREE.Vector3();
+    let flyBox = null;
+
+    function flyPose() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const side = w < 700 ? 16 : 40;
+      const top = siteTitle.getBoundingClientRect().bottom + 12;
+      const bottom = w < 700 ? 16 : 24;
+      const boxW = w - side * 2;
+      const boxH = h - top - bottom;
+
+      // World units per screen pixel at the card's distance
+      const perPx = (2 * FLY_DIST * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / h;
+      const s = Math.min((boxW * perPx) / CARD_W, (boxH * perPx) / (CARD_H + TAB_UP));
+      const usedH = ((CARD_H + TAB_UP) * s) / perPx;
+      const cy = top + (boxH - usedH) / 2 + ((TAB_UP + CARD_H / 2) * s) / perPx;
+
+      // Cast a ray through that screen point (the camera view is offset) out to the card's distance
+      const dir = tmpV.set(0, 1 - (cy / h) * 2, 0.5).unproject(camera).sub(camera.position).normalize();
+      const forward = camera.getWorldDirection(new THREE.Vector3());
+      const pos = camera.position.clone().addScaledVector(dir, FLY_DIST / dir.dot(forward));
+      flyWorld.compose(pos, camera.quaternion, new THREE.Vector3(s, s, s));
+
+      // The card face on screen, for laying the preview over it
+      const cardW = (CARD_W * s) / perPx;
+      const cardH = (CARD_H * s) / perPx;
+      flyBox = { left: w / 2 - cardW / 2, top: cy - cardH / 2, width: cardW, height: cardH };
+    }
+
+    function flyStep(dt) {
+      const c = cards[flyCard];
+      if (!c.restQuat) {
+        c.restQuat = c.card.quaternion.clone();
+        c.restX = c.card.position.x;
+      }
+
+      // On the gentle trip the spring is slowed without changing how much it bounces
+      const slow = gentle ? GENTLE : 1;
+      flyVel += ((flyTarget - fly) * (FLY_STIFFNESS / slow ** 2) - flyVel * (FLY_DAMPING / slow)) * dt;
+      fly += flyVel * dt;
+
+      // Back in the drum: hand the card back to the normal hover animation
+      if (flyTarget === 0 && fly <= 0) {
+        fly = 0;
+        flyVel = 0;
+        c.card.quaternion.copy(c.restQuat);
+        c.card.position.set(c.restX, c.card.position.y, 0);
+        if (c.preview) c.preview.material.opacity = 1;
+        flyCard = -1;
+        if (!portfolioList.matches(':hover')) deactivate();
+        if (!portfolioPending && !flyPending) setGentle(false);   // the gentle trip was cut short
+        return;
+      }
+
+      // The target pose in the card's own pivot space, so it can blend from where it sits in the drum
+      flyPose();
+      c.pivot.updateWorldMatrix(true, false);
+      flyLocal.copy(c.pivot.matrixWorld).invert().multiply(flyWorld);
+      flyLocal.decompose(flyPos, flyQuat, flyScale);
+
+      restPos.set(c.restX, c.card.position.y, 0);   // the lift animation has just set y and scale
+      restScale.copy(c.card.scale);
+      c.card.position.lerpVectors(restPos, flyPos, fly);
+      c.card.quaternion.slerpQuaternions(c.restQuat, flyQuat, Math.min(1, fly));
+      c.card.scale.lerpVectors(restScale, flyScale, fly);
+
+      // The preview image fades away as the card gets halfway, and back in on the return
+      if (c.preview) c.preview.material.opacity = Math.min(1, Math.max(0, (0.5 - fly) / 0.2));
+
+      // Phones: the flat card's CSS places the preview and See More, so clear anything set for the 3D card
+      if (phoneView.matches) {
+        for (const el of [previewLayer, tabLabel]) {
+          Object.assign(el.style, { left: '', top: '', width: '', height: '', fontSize: '' });
+        }
+        previewLayer.style.clipPath = '';
+        previewLayer.querySelectorAll('.preview-text').forEach((t) => { t.style.fontSize = ''; });
+        clippedFor = '';
+        fittedFor = '';
+      } else {
+        // Lay the preview over the card face, scaled to it, and show it once the card has landed
+        Object.assign(previewLayer.style, {
+          left: `${flyBox.left}px`,
+          top: `${flyBox.top}px`,
+          width: `${flyBox.width}px`,
+          height: `${flyBox.height}px`,
+          fontSize: `${flyBox.width / 80}px`,
+        });
+        fitPreviewText();
+        clipPreviewLayer(flyBox);
+
+        // "See More" sits on the visible part of this card's blue index tab
+        const k = flyBox.width / CARD_W;   // pixels per card unit
+        const tabX = -CARD_W / 2 + 0.25 + (flyCard / CARD_STEP) * ((CARD_W - 0.5) / (PORTFOLIO_COUNT - 1));
+        // Text sized to fill the tab: as wide as fits with a small margin, capped by the tab's height
+        const tabW = TAB_HALF_W * 2 * k;
+        const tabH = TAB_UP * k;
+        measure.font = `500 100px ${getComputedStyle(tabLabel).fontFamily}`;
+        const textW = measure.measureText(tabLabel.textContent).width / 100;   // width per px of font size
+        Object.assign(tabLabel.style, {
+          left: `${flyBox.left + flyBox.width / 2 + tabX * k - tabW / 2}px`,
+          top: `${flyBox.top - tabH}px`,
+          width: `${tabW}px`,
+          height: `${tabH}px`,
+          fontSize: `${Math.min((tabW * 0.9) / textW, tabH * 0.8)}px`,
+        });
+      }
+
+      if (flyTarget === 1 && !closing && Math.abs(1 - fly) < 0.02 && Math.abs(flyVel) < 0.3) {
+        // As the preview fades in, the carousel arrows check the slide under them at its full size
+        if (!previewLayer.classList.contains('shown')) previewLayer.querySelector('.preview.current .preview-carousel')?.shade();
+        previewLayer.classList.add('shown');
+      }
+      // The tab label waits until the card has completely stopped moving (the timeline card has no tab)
+      if (flyCard % CARD_STEP === 0 && flyTarget === 1 && !closing && Math.abs(1 - fly) < 0.0005 && Math.abs(flyVel) < 0.005) {
+        tabLabel.classList.add('shown');
+        setGentle(false);   // the portfolio card has landed, so the gentle trip is over
+      }
+    }
+
+    const clock = new THREE.Clock();
+    const ease = (rate, dt) => 1 - Math.exp(-dt * rate);
+
+    function animate() {
+      const dt = Math.min(clock.getDelta(), 0.05);
+
+      if (timelinePending && flyCard < 0) {
+        timelinePending = false;
+        startSpin();
+      }
+      if (portfolioPending && flyCard < 0) {
+        flyPending = portfolioPending;
+        portfolioPending = null;
+        flyPending.dispatchEvent(new Event('mouseenter'));   // turn the drum to its card
+      }
+      if (flyPending && flyCard < 0 && Math.abs(drumTarget - drum.rotation.x) < 0.03) {
+        const link = flyPending;
+        flyPending = null;
+        link.click();
+      }
+
+      if (cvPending && flyCard < 0) {
+        cvPending = false;
+        startCV();
+      }
+      if (newsPending && flyCard < 0) {
+        newsPending = false;
+        startNews();
+      }
+
+      if (cvTime >= 0) {
+        stepCV(dt);
+      } else if (newsTime >= 0) {
+        stepNews(dt);
+      } else if (spin > 0) {
+        // Wind up to full speed, then hand over to the coast onto the timeline card
+        spinSpeed += (SPIN_SPEED - spinSpeed) * ease(4, dt);
+        drum.rotation.x += spinSpeed * dt;
+        drumTarget = drum.rotation.x;
+        spin -= dt;
+        if (spin <= 0) launchTimeline();
+      } else {
+        if (activeCard < 0) drumTarget += IDLE_SPEED * dt;
+        drum.rotation.x += (drumTarget - drum.rotation.x) * ease(gentle ? 6 / GENTLE : 6, dt);
+      }
+
+      part += ((activeCard < 0 ? 0 : 1) - part) * ease(gentle ? 7 / GENTLE : 7, dt);
+
+      // The card only rises once the drum has nearly finished turning to it
+      const settled = Math.abs(drumTarget - drum.rotation.x) < 0.2;
+
+      for (let i = 0; i < cards.length; i++) {
+        const c = cards[i];
+
+        // Let the cards in front fall forward so the active card's face is clear
+        let offset = 0;
+        if (partedCard >= 0) {
+          const d = wrap(c.base - cards[partedCard].base);
+          const falloff = (1 - Math.abs(d) / Math.PI) ** 2;
+          if (d > 0) offset = FRONT_GAP * falloff * part;
+          else if (d < 0) offset = -BACK_GAP * falloff * part;
+        }
+
+        // Springy vertical rise out of the drum
+        const target = i === activeCard && settled ? 1 : 0;
+        c.liftVel += ((target - c.lift) * LIFT_STIFFNESS - c.liftVel * LIFT_DAMPING) * dt;
+        c.lift += c.liftVel * dt;
+        const shown = Math.max(0, Math.min(1, c.lift));
+
+        c.pivot.rotation.x = c.base + c.jitter + offset;
+        c.card.position.y = CORE_R + CARD_H / 2 + LIFT * c.lift;
+        c.card.scale.setScalar(1 + 0.04 * shown);
+        c.mat.emissiveIntensity = 0.12 * shown;
+        if (c.preview) c.preview.material.emissiveIntensity = 0.12 * shown;   // glows with its card
+      }
+
+      // Phones: once the tapped card has risen and shown a moment, it flies out (dropped if another
+      // card or animation takes over first)
+      if (phonePop) {
+        if (activeCard !== phonePop.card || flyCard >= 0) {
+          phonePop = null;
+        } else if (cards[phonePop.card].lift > 0.9) {
+          phonePop.held += dt;
+          if (phonePop.held >= PHONE_POP_HOLD) {
+            popReady = phonePop.link;
+            phonePop = null;
+            popReady.click();
+            popReady = null;
+          }
+        }
+      }
+
+      if (flyCard >= 0) flyStep(dt);
+      if (document.body.classList.contains('news-open')) stepNewsTrack(dt);
+
+      if (!cvShown && !newsShown) renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
